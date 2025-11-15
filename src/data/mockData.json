@@ -11,12 +11,9 @@
       { "id": "R3", "x": 70, "y": 34, "max_weight": 5200, "current_weight": 0, "assigned_uld": null, "isFixed": false },
       { "id": "R4", "x": 70, "y": 46, "max_weight": 5200, "current_weight": 0, "assigned_uld": null, "isFixed": false },
       { "id": "R5", "x": 70, "y": 58, "max_weight": 5400, "current_weight": 0, "assigned_uld": null, "isFixed": false },
-      { "id": "A1", "x": 25, "y": 75, "max_weight": 4200, "current_weight": 0, "assigned_uld": null, "isFixed": true },
-      { "id": "A2", "x": 25, "y": 87, "max_weight": 4200, "current_weight": 0, "assigned_uld": null, "isFixed": true },
-      { "id": "A3", "x": 25, "y": 99, "max_weight": 4200, "current_weight": 0, "assigned_uld": null, "isFixed": false },
-      { "id": "B1", "x": 55, "y": 75, "max_weight": 4200, "current_weight": 0, "assigned_uld": null, "isFixed": true },
-      { "id": "B2", "x": 55, "y": 87, "max_weight": 4200, "current_weight": 0, "assigned_uld": null, "isFixed": false },
-      { "id": "B3", "x": 55, "y": 99, "max_weight": 4200, "current_weight": 0, "assigned_uld": null, "isFixed": false }
+      { "id": "A1", "x": 25, "y": 75, "max_weight": 4200, "current_weight": 0, "assigned_uld": null, "isFixed": false },
+      { "id": "A2", "x": 25, "y": 87, "max_weight": 4200, "current_weight": 0, "assigned_uld": null, "isFixed": false },
+      { "id": "B1", "x": 55, "y": 75, "max_weight": 4200, "current_weight": 0, "assigned_uld": null, "isFixed": false }
     ],
     "ulds": [
       { "id": "ULD-A", "weight": 1850, "volume": 7.4, "isPriority": false, "type": "AKE" },

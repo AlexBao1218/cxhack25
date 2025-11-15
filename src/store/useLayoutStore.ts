@@ -20,8 +20,6 @@ interface LayoutStore extends LayoutState {
   recentOptimizedPositions: string[];
 }
 
-const FIXED_POSITIONS = new Set(["A1", "A2", "B1"]);
-
 const computeCGValue = (positions: Position[]): number => {
   const totalWeight = positions.reduce(
     (sum, pos) => sum + pos.current_weight,
@@ -74,6 +72,12 @@ const initialLayoutState: LayoutState = {
   ulds: mockLayoutState.ulds.map((uld) => ({ ...uld })),
   unassignedUlds: mockLayoutState.unassignedUlds.map((uld) => ({ ...uld })),
 };
+
+const FIXED_POSITIONS = new Set(
+  initialLayoutState.positions
+    .filter((pos) => pos.isFixed)
+    .map((pos) => pos.id),
+);
 
 export const useLayoutStore = create<LayoutStore>((set, get) => ({
   ...initialLayoutState,

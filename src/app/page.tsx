@@ -117,7 +117,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-cabin-bg to-white">
       <DndContext onDragEnd={handleDragEnd}>
-        <div className="mx-auto flex h-screen max-w-[1400px] flex-col gap-6 px-4 py-8 sm:px-8">
+        <div className="mx-auto flex h-screen w-full max-w-[1200px] flex-col gap-6 px-4 py-8 sm:px-8">
           <header className="flex flex-col gap-4 rounded-[32px] bg-cabin-interior/90 p-4 text-text-main shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:p-6">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-uld-border/20 bg-cabin-bg text-uld-border">

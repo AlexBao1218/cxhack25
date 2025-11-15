@@ -4,7 +4,6 @@ import React from "react";
 
 import CGDisplay from "@/components/CGDisplay";
 import ScoreDisplay from "@/components/ScoreDisplay";
-import SuggestionDisplay from "@/components/SuggestionDisplay";
 import { useLayoutStore } from "@/store/useLayoutStore";
 
 const Dashboard: React.FC = () => {
@@ -31,10 +30,9 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
         <CGDisplay />
         <ScoreDisplay />
-        <SuggestionDisplay />
       </div>
     </section>
   );

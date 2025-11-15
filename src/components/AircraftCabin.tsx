@@ -8,6 +8,9 @@ import { useLayoutStore } from "@/store/useLayoutStore";
 import toast from "react-hot-toast";
 import type { Position, ULD } from "@/types";
 
+const FRONT_POSITION_IDS = ["A1", "A2", "B1"] as const;
+const FRONT_POSITION_SET: Set<string> = new Set(FRONT_POSITION_IDS);
+
 const sortPositions = (positions: Position[], prefix: string) =>
   positions
     .filter((pos) => pos.id.startsWith(prefix))
@@ -129,72 +132,6 @@ const PositionCard: React.FC<{
   );
 };
 
-const Section: React.FC<{
-  title: string;
-  left: Position[];
-  right: Position[];
-  ulds: ULD[];
-  onUnassign: (positionId: string) => void;
-  highlightPositionId?: string | null;
-  highlightPositions?: string[];
-}> = ({
-  title,
-  left,
-  right,
-  ulds,
-  onUnassign,
-  highlightPositionId,
-  highlightPositions = [],
-}) => (
-  <div>
-    <div className="mb-4 flex items-center justify-between">
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-text-main">
-        {title}
-      </h3>
-      <div className="h-px flex-1 bg-uld-border/40" />
-    </div>
-    <div className="flex flex-col gap-6 sm:flex-row">
-      <div className="flex flex-1 flex-col gap-3">
-        {left.map((position) => (
-          <PositionCard
-            key={position.id}
-            position={position}
-            uld={
-              position.assigned_uld
-                ? ulds.find((item) => item.id === position.assigned_uld)
-                : undefined
-            }
-            onUnassign={onUnassign}
-            isHighlighted={
-              position.id === highlightPositionId ||
-              highlightPositions.includes(position.id)
-            }
-          />
-        ))}
-      </div>
-      <div className="hidden h-full w-px bg-uld-border/30 sm:block" />
-      <div className="flex flex-1 flex-col gap-3">
-        {right.map((position) => (
-          <PositionCard
-            key={position.id}
-            position={position}
-            uld={
-              position.assigned_uld
-                ? ulds.find((item) => item.id === position.assigned_uld)
-                : undefined
-            }
-            onUnassign={onUnassign}
-            isHighlighted={
-              position.id === highlightPositionId ||
-              highlightPositions.includes(position.id)
-            }
-          />
-        ))}
-      </div>
-    </div>
-  </div>
-);
-
 interface AircraftCabinProps {
   highlightPositionId?: string | null;
   highlightPositions?: string[];
@@ -229,12 +166,27 @@ const AircraftCabin: React.FC<AircraftCabinProps> = ({
     [positions],
   );
   const lowerLeft = React.useMemo(
-    () => sortPositions(positions, "A"),
+    () => sortPositions(positions, "A").filter((position) => !FRONT_POSITION_SET.has(position.id)),
     [positions],
   );
   const lowerRight = React.useMemo(
-    () => sortPositions(positions, "B"),
+    () => sortPositions(positions, "B").filter((position) => !FRONT_POSITION_SET.has(position.id)),
     [positions],
+  );
+  const frontPositions = React.useMemo(
+    () =>
+      FRONT_POSITION_IDS.map((id) =>
+        positions.find((position) => position.id === id),
+      ).filter((position): position is Position => Boolean(position)),
+    [positions],
+  );
+  const leftColumnPositions = React.useMemo(
+    () => [...mainLeft, ...lowerLeft],
+    [mainLeft, lowerLeft],
+  );
+  const rightColumnPositions = React.useMemo(
+    () => [...mainRight, ...lowerRight],
+    [mainRight, lowerRight],
   );
 
   return (
@@ -251,24 +203,75 @@ const AircraftCabin: React.FC<AircraftCabinProps> = ({
 
         <div className="rounded-[36px] border border-uld-border/30 bg-cabin-interior p-6">
           <div className="space-y-10">
-            <Section
-              title="Main Deck"
-              left={mainLeft}
-              right={mainRight}
-              ulds={ulds}
-              onUnassign={handleUnassign}
-              highlightPositionId={highlightPositionId}
-              highlightPositions={highlightPositions}
-            />
-            <Section
-              title="Lower Deck"
-              left={lowerLeft}
-              right={lowerRight}
-              ulds={ulds}
-              onUnassign={handleUnassign}
-              highlightPositionId={highlightPositionId}
-              highlightPositions={highlightPositions}
-            />
+            {frontPositions.length > 0 && (
+              <div>
+                <div className="mb-4 flex items-center justify-center">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-text-main">
+                    Nose
+                  </h3>
+                </div>
+                <div className="flex flex-col items-center gap-4">
+                  {frontPositions.map((position) => (
+                    <div key={position.id} className="w-full max-w-[260px]">
+                      <PositionCard
+                        position={position}
+                        uld={
+                          position.assigned_uld
+                            ? ulds.find((item) => item.id === position.assigned_uld)
+                            : undefined
+                        }
+                        onUnassign={handleUnassign}
+                        isHighlighted={
+                          position.id === highlightPositionId ||
+                          highlightPositions.includes(position.id)
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div>
+              <div className="flex flex-col gap-6 sm:flex-row">
+                <div className="flex flex-1 flex-col gap-3">
+                  {leftColumnPositions.map((position) => (
+                    <PositionCard
+                      key={position.id}
+                      position={position}
+                      uld={
+                        position.assigned_uld
+                          ? ulds.find((item) => item.id === position.assigned_uld)
+                          : undefined
+                      }
+                      onUnassign={handleUnassign}
+                      isHighlighted={
+                        position.id === highlightPositionId ||
+                        highlightPositions.includes(position.id)
+                      }
+                    />
+                  ))}
+                </div>
+                <div className="hidden h-full w-px bg-uld-border/30 sm:block" />
+                <div className="flex flex-1 flex-col gap-3">
+                  {rightColumnPositions.map((position) => (
+                    <PositionCard
+                      key={position.id}
+                      position={position}
+                      uld={
+                        position.assigned_uld
+                          ? ulds.find((item) => item.id === position.assigned_uld)
+                          : undefined
+                      }
+                      onUnassign={handleUnassign}
+                      isHighlighted={
+                        position.id === highlightPositionId ||
+                        highlightPositions.includes(position.id)
+                      }
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
