@@ -46,6 +46,11 @@ interface LayoutStore extends LayoutState {
   assignULD: (uldId: string, positionId: string) => ActionResult;
   unassignULD: (positionId: string) => ActionResult;
   swapULD: (uldId: string, positionId: string) => ActionResult;
+  moveULDWithinPositions: (
+    fromPositionId: string,
+    toPositionId: string,
+  ) => ActionResult;
+  swapPositions: (positionAId: string, positionBId: string) => ActionResult;
   calculateCG: () => number;
   calculateScore: () => number;
   generateSuggestion: () => string;
@@ -54,6 +59,7 @@ interface LayoutStore extends LayoutState {
   clearRecentOptimizedPositions: () => void;
   loadFlightData: (flightNumber: string) => Promise<boolean>;
   clearAllAssignments: () => void;
+  getULDById: (uldId: string) => ULD | undefined;
   recentOptimizedPositions: string[];
 }
 
@@ -112,6 +118,7 @@ const initialLayoutState = createLayoutStateFromSnapshot(
 export const useLayoutStore = create<LayoutStore>((set, get) => ({
   ...initialLayoutState,
   recentOptimizedPositions: [],
+  getULDById: (uldId) => get().ulds.find((uld) => uld.id === uldId),
   loadFlightData: async (flightNumber) => {
     const normalized = flightNumber.toUpperCase();
     if (!FLIGHT_NUMBER_REGEX.test(normalized)) {
@@ -315,6 +322,151 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
         cgValue: computeCGValue(updatedPositions),
         score: computeScoreValue(updatedPositions, updatedUnassigned),
         suggestion: buildSuggestion(updatedPositions, updatedUnassigned),
+      };
+    });
+
+    return result;
+  },
+  moveULDWithinPositions: (fromPositionId, toPositionId) => {
+    let result: ActionResult = { success: true, message: "操作成功" };
+
+    set((state) => {
+      const fromPosition = state.positions.find(
+        (pos) => pos.id === fromPositionId,
+      );
+      const toPosition = state.positions.find((pos) => pos.id === toPositionId);
+
+      if (!fromPosition || !toPosition) {
+        result = { success: false, message: "仓位信息无效" };
+        return {};
+      }
+
+      if (fromPosition.isFixed || toPosition.isFixed) {
+        result = { success: false, message: "固定仓位无法调整" };
+        return {};
+      }
+
+      if (!fromPosition.assigned_uld) {
+        result = { success: false, message: `${fromPositionId} 当前没有ULD` };
+        return {};
+      }
+
+      if (toPosition.assigned_uld) {
+        result = {
+          success: false,
+          message: `${toPositionId} 已有ULD，请尝试交换操作`,
+        };
+        return {};
+      }
+
+      const movingULD = state.ulds.find(
+        (uld) => uld.id === fromPosition.assigned_uld,
+      );
+      if (!movingULD) {
+        result = { success: false, message: "未找到对应的ULD" };
+        return {};
+      }
+
+      if (movingULD.weight > toPosition.max_weight) {
+        result = { success: false, message: `${toPositionId} 承重不足` };
+        return {};
+      }
+
+      const updatedPositions = state.positions.map((pos) => {
+        if (pos.id === fromPositionId) {
+          return { ...pos, assigned_uld: null, current_weight: 0 };
+        }
+        if (pos.id === toPositionId) {
+          return {
+            ...pos,
+            assigned_uld: movingULD.id,
+            current_weight: movingULD.weight,
+          };
+        }
+        return pos;
+      });
+
+      const updatedUnassigned = state.unassignedUlds;
+      const cgValue = computeCGValue(updatedPositions);
+      const score = computeScoreValue(updatedPositions, updatedUnassigned);
+      const suggestion = buildSuggestion(updatedPositions, updatedUnassigned);
+
+      result = { success: true, message: `${movingULD.id} 已移动到 ${toPositionId}` };
+
+      return {
+        positions: updatedPositions,
+        cgValue,
+        score,
+        suggestion,
+      };
+    });
+
+    return result;
+  },
+  swapPositions: (positionAId, positionBId) => {
+    let result: ActionResult = { success: true, message: "操作成功" };
+
+    set((state) => {
+      const positionA = state.positions.find((pos) => pos.id === positionAId);
+      const positionB = state.positions.find((pos) => pos.id === positionBId);
+
+      if (!positionA || !positionB) {
+        result = { success: false, message: "仓位信息无效" };
+        return {};
+      }
+
+      if (positionA.isFixed || positionB.isFixed) {
+        result = { success: false, message: "固定仓位无法交换" };
+        return {};
+      }
+
+      if (!positionA.assigned_uld || !positionB.assigned_uld) {
+        result = { success: false, message: "需两个仓位均有ULD才可交换" };
+        return {};
+      }
+
+      const uldA = state.ulds.find((uld) => uld.id === positionA.assigned_uld);
+      const uldB = state.ulds.find((uld) => uld.id === positionB.assigned_uld);
+
+      if (!uldA || !uldB) {
+        result = { success: false, message: "未找到ULD信息" };
+        return {};
+      }
+
+      if (uldA.weight > positionB.max_weight || uldB.weight > positionA.max_weight) {
+        result = { success: false, message: "交换后将导致超重，已阻止操作" };
+        return {};
+      }
+
+      const updatedPositions = state.positions.map((pos) => {
+        if (pos.id === positionAId) {
+          return {
+            ...pos,
+            assigned_uld: positionB.assigned_uld,
+            current_weight: uldB.weight,
+          };
+        }
+        if (pos.id === positionBId) {
+          return {
+            ...pos,
+            assigned_uld: positionA.assigned_uld,
+            current_weight: uldA.weight,
+          };
+        }
+        return pos;
+      });
+
+      const updatedUnassigned = state.unassignedUlds;
+      const cgValue = computeCGValue(updatedPositions);
+      const score = computeScoreValue(updatedPositions, updatedUnassigned);
+      const suggestion = buildSuggestion(updatedPositions, updatedUnassigned);
+      result = { success: true, message: `${positionA.assigned_uld} 与 ${positionB.assigned_uld} 已交换` };
+
+      return {
+        positions: updatedPositions,
+        cgValue,
+        score,
+        suggestion,
       };
     });
 

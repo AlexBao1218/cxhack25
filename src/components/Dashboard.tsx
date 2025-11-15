@@ -25,7 +25,7 @@ const Dashboard: React.FC = () => {
               </h1>
             </div>
           </div>
-          <div className="rounded-lg bg-white px-4 py-3 text-gray-600 shadow">
+          <div className="mt-2 sm:mt-4 lg:mt-6 rounded-lg bg-white px-4 py-3 text-gray-600 shadow">
             <p className="text-sm uppercase tracking-[0.2em] text-gray-400">
               Developed by
             </p>

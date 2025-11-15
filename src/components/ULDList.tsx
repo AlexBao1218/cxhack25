@@ -1,23 +1,19 @@
 'use client';
 
 import React from "react";
-import {
-  DragOverlay,
-  useDraggable,
-  useDndMonitor,
-} from "@dnd-kit/core";
 import { Package, GripVertical, RotateCcw, Sparkles } from "lucide-react";
 import toast from "react-hot-toast";
 
 import type { ULD } from "@/types";
 import { useLayoutStore } from "@/store/useLayoutStore";
+import DraggableULD from "@/components/DraggableULD";
 
 const CARD_BASE_STYLE =
   "group min-h-[90px] rounded-2xl border border-uld-border/30 bg-white px-3 py-3 text-sm text-text-main shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl";
 
 const DND_INSTRUCTIONS_ID = "dnd-kit-cargo-describedby";
 
-const ULDCard: React.FC<{ uld: ULD; withHandle?: boolean }> = ({
+export const ULDCard: React.FC<{ uld: ULD; withHandle?: boolean }> = ({
   uld,
   withHandle = false,
 }) => {
@@ -36,42 +32,16 @@ const ULDCard: React.FC<{ uld: ULD; withHandle?: boolean }> = ({
   );
 };
 
-const DraggableCard: React.FC<{ uld: ULD }> = ({ uld }) => {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id: uld.id,
-      data: uld,
-    });
-
-  const draggableAttributes = React.useMemo(
-    () => ({
-      ...attributes,
-      "aria-describedby": DND_INSTRUCTIONS_ID,
-    }),
-    [attributes],
-  );
-
-  const style: React.CSSProperties = {
-    transform: transform
-      ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
-      : undefined,
-  };
-
-  return (
-    <button
-      type="button"
-      ref={setNodeRef}
-      style={style}
-      className={`w-full cursor-grab transition active:scale-95 ${
-        isDragging ? "opacity-50" : ""
-      }`}
-      {...listeners}
-      {...draggableAttributes}
-    >
-      <ULDCard uld={uld} withHandle />
-    </button>
-  );
-};
+const DraggableCard: React.FC<{ uld: ULD }> = ({ uld }) => (
+  <DraggableULD
+    uld={uld}
+    source="list"
+    ariaDescribedBy={DND_INSTRUCTIONS_ID}
+    className="w-full"
+  >
+    <ULDCard uld={uld} withHandle />
+  </DraggableULD>
+);
 
 const ULDList: React.FC = () => {
   const unassignedUlds = useLayoutStore((state) => state.unassignedUlds);
@@ -81,22 +51,6 @@ const ULDList: React.FC = () => {
     (state) => state.clearAllAssignments,
   );
   const isLoading = useLayoutStore((state) => state.isLoading);
-  const [activeULD, setActiveULD] = React.useState<ULD | null>(null);
-
-  useDndMonitor({
-    onDragStart(event) {
-      const payload = event.active.data.current as ULD | undefined;
-      if (payload) {
-        setActiveULD(payload);
-      }
-    },
-    onDragEnd() {
-      setActiveULD(null);
-    },
-    onDragCancel() {
-      setActiveULD(null);
-    },
-  });
 
   const sortedUlds = React.useMemo(() => {
     return [...unassignedUlds].sort((a, b) => {
@@ -195,13 +149,6 @@ const ULDList: React.FC = () => {
           </div>
         )}
       </div>
-      <DragOverlay>
-        {activeULD ? (
-          <div className="w-[260px] max-w-xs opacity-90 shadow-2xl">
-            <ULDCard uld={activeULD} withHandle />
-          </div>
-        ) : null}
-      </DragOverlay>
     </>
   );
 };

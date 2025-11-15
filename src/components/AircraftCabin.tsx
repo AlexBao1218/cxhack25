@@ -2,11 +2,12 @@
 
 import React from "react";
 import { useDroppable } from "@dnd-kit/core";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 import { useLayoutStore } from "@/store/useLayoutStore";
 import toast from "react-hot-toast";
 import type { Position, ULD } from "@/types";
+import DraggableULD from "@/components/DraggableULD";
 
 const MAIN_DECK_ROWS = [
   "C",
@@ -44,7 +45,7 @@ const PositionCard: React.FC<{
   const borderColor = hovering ? "border-blue-400" : baseBorder;
 
   const background = uld ? "bg-uld-assigned" : "bg-white";
-  const cursorClass = uld ? "cursor-pointer" : "cursor-default";
+  const cursorClass = uld ? "" : "cursor-default";
   const highlightClass = isHighlighted
     ? "ring-4 ring-uld-border/50 shadow-uld-border/40"
     : "shadow-sm";
@@ -58,25 +59,39 @@ const PositionCard: React.FC<{
   return (
     <div
       ref={setNodeRef}
-      onClick={handleUnassign}
-      role={uld ? "button" : undefined}
       className={`relative flex h-[84px] w-[176px] items-center justify-between rounded-lg border-2 ${borderColor} ${background} px-3 py-2 transition-all duration-75 ${cursorClass} ${highlightClass}`}
     >
       <div className={`flex-shrink-0 text-lg font-bold ${uld ? "text-white" : "text-gray-900"}`}>
         {position.id}
       </div>
 
-      <div
-        className={`flex flex-1 flex-col items-end text-right ${
-          uld ? "text-white" : "text-gray-500"
-        }`}
-      >
+      <div className="flex flex-1 items-center justify-end gap-2">
         {uld ? (
           <>
-            <span className="text-lg font-semibold">{uld.id}</span>
-            <span className="text-base font-semibold">
-              {position.current_weight.toLocaleString()} kg
-            </span>
+            <DraggableULD
+              uld={uld}
+              source="position"
+              positionId={position.id}
+              className="flex-1"
+            >
+              <div className="flex flex-1 flex-col items-end text-right text-white">
+                <span className="text-lg font-semibold">{uld.id}</span>
+                <span className="text-base font-semibold">
+                  {position.current_weight.toLocaleString()} kg
+                </span>
+              </div>
+            </DraggableULD>
+            <button
+              type="button"
+              aria-label="移除ULD"
+              className="rounded-full bg-white/20 p-1 text-white transition hover:bg-white/40"
+              onClick={(event) => {
+                event.stopPropagation();
+                handleUnassign();
+              }}
+            >
+              <X size={14} />
+            </button>
           </>
         ) : (
           <span className="text-base font-medium text-gray-400">待装载</span>
@@ -102,8 +117,8 @@ const AircraftCabin: React.FC<AircraftCabinProps> = ({
   highlightPositions = [],
 }) => {
   const positions = useLayoutStore((state) => state.positions);
-  const ulds = useLayoutStore((state) => state.ulds);
   const unassignULD = useLayoutStore((state) => state.unassignULD);
+  const getULDById = useLayoutStore((state) => state.getULDById);
   const currentFlightNumber = useLayoutStore(
     (state) => state.currentFlightNumber,
   );
@@ -188,8 +203,8 @@ const AircraftCabin: React.FC<AircraftCabinProps> = ({
 
   const findULDById = React.useCallback(
     (id: string | null | undefined) =>
-      id ? ulds.find((item) => item.id === id) : undefined,
-    [ulds],
+      id ? getULDById(id) ?? undefined : undefined,
+    [getULDById],
   );
 
   return (

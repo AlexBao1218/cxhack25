@@ -5,7 +5,7 @@ import { ArrowRight } from "lucide-react";
 
 import { useLayoutStore } from "@/store/useLayoutStore";
 
-const BEST_RANGE = { min: 20, max: 30 }; // 单位：英尺
+const BEST_RANGE = { min: 40, max: 50 }; // 单位：英尺
 const BAR_OFFSET_FROM_CENTER = 18;
 const TRIANGLE_HEIGHT = 14;
 const TRIANGLE_WIDTH = 18;
@@ -140,25 +140,26 @@ const CGDisplay: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 text-base font-medium text-text-main">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 text-base font-medium text-text-main">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="block h-3 w-3 rounded-full bg-light-jade" />
             可接受重心范围 {BEST_RANGE.min} ft - {BEST_RANGE.max} ft
           </div>
-          {!isWithinBestRange && (
-            <div className="flex items-center gap-2 text-yellow-700">
-              <span className="block h-3 w-3 rounded-full bg-yellow-400" />
-              <span className="font-semibold">
-                已偏离可接受范围，请调整装载
-              </span>
-            </div>
-          )}
-          {isWithinBestRange && (
-            <div className="flex items-center gap-2 text-green-600">
-              <span className="block h-3 w-3 rounded-full bg-green-500" />
-              重心表现良好
-            </div>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {isWithinBestRange ? (
+              <>
+                <span className="block h-3 w-3 rounded-full bg-green-500" />
+                <span className="text-green-600">重心表现良好</span>
+              </>
+            ) : (
+              <>
+                <span className="block h-3 w-3 rounded-full bg-yellow-400" />
+                <span className="font-semibold text-yellow-700">
+                  已偏离可接受范围，请调整装载
+                </span>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </section>

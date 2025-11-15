@@ -1,19 +1,36 @@
 'use client';
 
 import React from "react";
-import { DndContext, type DragEndEvent } from "@dnd-kit/core";
+import {
+  DndContext,
+  DragOverlay,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
 import toast from "react-hot-toast";
 
 import AircraftCabin from "@/components/AircraftCabin";
 import Dashboard from "@/components/Dashboard";
 import LoadingOverlay from "@/components/Loading";
-import ULDList from "@/components/ULDList";
+import ULDList, { ULDCard } from "@/components/ULDList";
 import { useLayoutStore } from "@/store/useLayoutStore";
 import type { Position, ULD } from "@/types";
+
+type DragPayload = {
+  type: "ULD";
+  uld: ULD;
+  source: "list" | "position";
+  positionId?: string;
+};
 
 export default function Home() {
   const assignULD = useLayoutStore((state) => state.assignULD);
   const swapULD = useLayoutStore((state) => state.swapULD);
+  const unassignULD = useLayoutStore((state) => state.unassignULD);
+  const moveULDWithinPositions = useLayoutStore(
+    (state) => state.moveULDWithinPositions,
+  );
+  const swapPositions = useLayoutStore((state) => state.swapPositions);
   const recentOptimizedPositions = useLayoutStore(
     (state) => state.recentOptimizedPositions,
   );
@@ -26,6 +43,9 @@ export default function Home() {
   const [optimizedHighlights, setOptimizedHighlights] = React.useState<
     string[]
   >([]);
+  const [activeDragItem, setActiveDragItem] = React.useState<DragPayload | null>(
+    null,
+  );
 
   React.useEffect(() => {
     if (!highlightPositionId) {
@@ -48,17 +68,34 @@ export default function Home() {
     return () => window.clearTimeout(timer);
   }, [recentOptimizedPositions, clearRecentOptimizedPositions]);
 
+  const handleDragStart = React.useCallback((event: DragStartEvent) => {
+    const payload = event.active.data.current as DragPayload | undefined;
+    if (payload?.uld) {
+      setActiveDragItem(payload);
+    }
+  }, []);
+
   const handleDragEnd = React.useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
-      const activeItem = active.data.current as ULD | undefined;
+      const payload = active.data.current as DragPayload | undefined;
+      setActiveDragItem(null);
 
-      if (!activeItem) {
+      if (!payload?.uld) {
         return;
       }
 
       if (!over) {
-        toast("未放置到有效仓位，保持在列表中");
+        if (payload.source === "position" && payload.positionId) {
+          const result = unassignULD(payload.positionId);
+          if (result.success) {
+            toast.success(result.message);
+          } else {
+            toast.error(result.message);
+          }
+        } else {
+          toast("未放置到有效仓位，保持在列表中");
+        }
         return;
       }
 
@@ -67,7 +104,11 @@ export default function Home() {
         | undefined;
       const targetPositionId = targetData?.position?.id;
       if (!targetPositionId) {
-        console.warn("目标区域缺少仓位数据");
+        toast.error("目标区域缺少仓位数据");
+        return;
+      }
+
+      if (payload.positionId === targetPositionId) {
         return;
       }
 
@@ -86,23 +127,81 @@ export default function Home() {
         return;
       }
 
-      const action = targetPosition.assigned_uld ? swapULD : assignULD;
-      const result = action(activeItem.id, targetPosition.id);
+      if (payload.source === "list") {
+        const action = targetPosition.assigned_uld ? swapULD : assignULD;
+        const result = action(payload.uld.id, targetPosition.id);
 
-      if (!result.success) {
-        toast.error(result.message);
+        if (!result.success) {
+          toast.error(result.message);
+          return;
+        }
+
+        toast.success(result.message);
+        setHighlightPositionId(targetPosition.id);
         return;
       }
 
-      toast.success(result.message);
-      setHighlightPositionId(targetPosition.id);
+      if (payload.source === "position" && payload.positionId) {
+        const sourcePosition = store.positions.find(
+          (pos) => pos.id === payload.positionId,
+        );
+
+        if (!sourcePosition) {
+          toast.error("未找到原仓位");
+          return;
+        }
+
+        if (sourcePosition.isFixed) {
+          toast.error("此仓位为固定仓位，不可更改");
+          return;
+        }
+
+        if (!targetPosition.assigned_uld) {
+          const result = moveULDWithinPositions(
+            payload.positionId,
+            targetPositionId,
+          );
+
+          if (!result.success) {
+            toast.error(result.message);
+            return;
+          }
+
+          toast.success(result.message);
+          setHighlightPositionId(targetPositionId);
+          return;
+        }
+
+        const result = swapPositions(payload.positionId, targetPositionId);
+        if (!result.success) {
+          toast.error(result.message);
+          return;
+        }
+        toast.success(result.message);
+        setHighlightPositionId(targetPositionId);
+        return;
+      }
     },
-    [assignULD, swapULD],
+    [
+      assignULD,
+      swapULD,
+      unassignULD,
+      moveULDWithinPositions,
+      swapPositions,
+    ],
   );
+
+  const handleDragCancel = React.useCallback(() => {
+    setActiveDragItem(null);
+  }, []);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-cabin-bg to-white">
-      <DndContext onDragEnd={handleDragEnd}>
+      <DndContext
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+      >
         <div className="mx-auto flex w-full max-w-[68rem] flex-col gap-6 px-4 py-8 sm:px-6">
           <Dashboard />
 
@@ -119,6 +218,16 @@ export default function Home() {
             </div>
           </div>
         </div>
+        <DragOverlay>
+          {activeDragItem?.uld ? (
+            <div className="w-[240px] max-w-xs opacity-90 shadow-2xl">
+              <ULDCard
+                uld={activeDragItem.uld}
+                withHandle={activeDragItem.source === "list"}
+              />
+            </div>
+          ) : null}
+        </DragOverlay>
       </DndContext>
       <LoadingOverlay />
     </main>
