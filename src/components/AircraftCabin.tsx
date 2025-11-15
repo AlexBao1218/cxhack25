@@ -43,11 +43,11 @@ const PositionCard: React.FC<{
   const baseBorder = "border-uld-border";
   const borderColor = hovering ? "border-blue-400" : baseBorder;
 
-  const assignedBackground = "bg-uld-border text-white";
-  const idleBackground = "bg-white";
-  const background = uld ? assignedBackground : idleBackground;
-  const textColor = uld ? "text-white" : "text-text-main";
+  const background = uld ? "bg-uld-assigned" : "bg-white";
   const cursorClass = uld ? "cursor-pointer" : "cursor-default";
+  const highlightClass = isHighlighted
+    ? "ring-4 ring-uld-border/50 shadow-uld-border/40"
+    : "shadow-sm";
 
   const handleUnassign = () => {
     if (uld) {
@@ -55,34 +55,33 @@ const PositionCard: React.FC<{
     }
   };
 
-  const highlightClass = isHighlighted
-    ? "ring-4 ring-uld-border/50 shadow-uld-border/40"
-    : "shadow-sm";
-
   return (
     <div
       ref={setNodeRef}
       onClick={handleUnassign}
       role={uld ? "button" : undefined}
-      className={`relative flex min-h-[80px] w-full flex-col justify-between rounded-xl border-2 ${borderColor} ${background} p-3 text-sm ${textColor} transition-all duration-200 ${cursorClass} ${highlightClass}`}
+      className={`relative flex h-[84px] w-[176px] items-center justify-between rounded-lg border-2 ${borderColor} ${background} px-3 py-2 transition-all duration-200 ${cursorClass} ${highlightClass}`}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex flex-col">
-          <span className="text-base font-semibold">{position.id}</span>
-        </div>
+      <div className={`flex-shrink-0 text-lg font-bold ${uld ? "text-white" : "text-gray-900"}`}>
+        {position.id}
       </div>
-      {uld ? (
-        <div className="mt-2 flex items-center justify-between">
-          <div className="flex flex-col">
+
+      <div
+        className={`flex flex-1 flex-col items-end text-right ${
+          uld ? "text-white" : "text-gray-500"
+        }`}
+      >
+        {uld ? (
+          <>
             <span className="text-sm font-semibold">{uld.id}</span>
             <span className="text-xs">
               {position.current_weight.toLocaleString()} kg
             </span>
-          </div>
-        </div>
-      ) : (
-        <p className="mt-1 text-xs text-slate-500">待装载</p>
-      )}
+          </>
+        ) : (
+          <span className="text-base font-medium text-gray-400">待装载</span>
+        )}
+      </div>
 
       {hovering && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-blue-500/10 text-xs font-semibold text-blue-800">
@@ -249,32 +248,26 @@ const AircraftCabin: React.FC<AircraftCabinProps> = ({
         </div>
       </div>
 
-      <div className="space-y-10">
+      <div className="space-y-6">
         <div>
-          <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
             前部仓位（第1-3排）
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {["A1", "A2", "B1"].map((id) => {
-              const nosePosition = positions.find(
-                (position) => position.id === id,
-              );
-              if (!nosePosition) {
-                return null;
-              }
+              const nosePosition = positions.find((position) => position.id === id);
+              if (!nosePosition) return null;
               return (
                 <div key={id} className="flex justify-center">
-                  <div className="w-full max-w-[320px]">
-                    <PositionCard
-                      position={nosePosition}
-                      uld={findULDById(nosePosition.assigned_uld)}
-                      onUnassign={handleUnassign}
-                      isHighlighted={
-                        nosePosition.id === highlightPositionId ||
-                        highlightPositions.includes(nosePosition.id)
-                      }
-                    />
-                  </div>
+                  <PositionCard
+                    position={nosePosition}
+                    uld={findULDById(nosePosition.assigned_uld)}
+                    onUnassign={handleUnassign}
+                    isHighlighted={
+                      nosePosition.id === highlightPositionId ||
+                      highlightPositions.includes(nosePosition.id)
+                    }
+                  />
                 </div>
               );
             })}
@@ -282,10 +275,10 @@ const AircraftCabin: React.FC<AircraftCabinProps> = ({
         </div>
 
         <div>
-          <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
             主货舱（第4-18排）
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {mainDeckRows.map(({ row, left, right }) => (
               <div
                 key={row}
@@ -294,9 +287,9 @@ const AircraftCabin: React.FC<AircraftCabinProps> = ({
                 <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
                   Row {row}
                 </div>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <div>
-                    {left ? (
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <div className="flex justify-center sm:justify-end">
+                    {left && (
                       <PositionCard
                         position={left}
                         uld={findULDById(left.assigned_uld)}
@@ -306,12 +299,10 @@ const AircraftCabin: React.FC<AircraftCabinProps> = ({
                           highlightPositions.includes(left.id)
                         }
                       />
-                    ) : (
-                      <div className="hidden sm:block" />
                     )}
                   </div>
-                  <div>
-                    {right ? (
+                  <div className="flex justify-center sm:justify-start">
+                    {right && (
                       <PositionCard
                         position={right}
                         uld={findULDById(right.assigned_uld)}
@@ -321,8 +312,6 @@ const AircraftCabin: React.FC<AircraftCabinProps> = ({
                           highlightPositions.includes(right.id)
                         }
                       />
-                    ) : (
-                      <div className="hidden sm:block" />
                     )}
                   </div>
                 </div>
@@ -332,30 +321,28 @@ const AircraftCabin: React.FC<AircraftCabinProps> = ({
         </div>
 
         <div>
-          <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
             尾部仓位（第19排）
           </div>
           <div className="flex justify-center">
-            <div className="w-full max-w-[320px]">
-              {TAIL_POSITION_IDS.map((id) => {
-                const tail = positions.find((position) => position.id === id);
-                if (!tail) {
-                  return null;
-                }
-                return (
-                  <PositionCard
-                    key={tail.id}
-                    position={tail}
-                    uld={findULDById(tail.assigned_uld)}
-                    onUnassign={handleUnassign}
-                    isHighlighted={
-                      tail.id === highlightPositionId ||
-                      highlightPositions.includes(tail.id)
-                    }
-                  />
-                );
-              })}
-            </div>
+            {TAIL_POSITION_IDS.map((id) => {
+              const tail = positions.find((position) => position.id === id);
+              if (!tail) {
+                return null;
+              }
+              return (
+                <PositionCard
+                  key={tail.id}
+                  position={tail}
+                  uld={findULDById(tail.assigned_uld)}
+                  onUnassign={handleUnassign}
+                  isHighlighted={
+                    tail.id === highlightPositionId ||
+                    highlightPositions.includes(tail.id)
+                  }
+                />
+              );
+            })}
           </div>
         </div>
       </div>

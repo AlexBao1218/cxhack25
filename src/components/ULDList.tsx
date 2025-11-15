@@ -75,15 +75,12 @@ const DraggableCard: React.FC<{ uld: ULD }> = ({ uld }) => {
 
 const ULDList: React.FC = () => {
   const unassignedUlds = useLayoutStore((state) => state.unassignedUlds);
+  const positions = useLayoutStore((state) => state.positions);
   const optimizeLayout = useLayoutStore((state) => state.optimizeLayout);
   const clearAllAssignments = useLayoutStore(
     (state) => state.clearAllAssignments,
   );
   const isLoading = useLayoutStore((state) => state.isLoading);
-  const loadedCount = useLayoutStore(
-    (state) =>
-      state.positions.filter((position) => position.assigned_uld).length,
-  );
   const [activeULD, setActiveULD] = React.useState<ULD | null>(null);
 
   useDndMonitor({
@@ -109,6 +106,8 @@ const ULDList: React.FC = () => {
       return a.id.localeCompare(b.id, "en");
     });
   }, [unassignedUlds]);
+  const totalCount = positions.length;
+  const assignedCount = positions.filter((pos) => pos.assigned_uld).length;
 
   return (
     <>
@@ -116,20 +115,17 @@ const ULDList: React.FC = () => {
         按空格选中ULD后，可通过箭头键在布局中移动并在目标仓位释放。
       </span>
       <div className="flex w-full flex-col text-text-main">
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Package size={22} className="text-uld-border/70" />
-            <div>
-              <h2 className="text-xl font-semibold text-uld-border">ULD 列表</h2>
-              <p className="text-xs uppercase tracking-[0.3em] text-text-main/70">
-                Unassigned Pool
-              </p>
-            </div>
+            <Package size={20} className="text-uld-border/70" />
+            <h2 className="text-lg font-semibold text-gray-900">ULD 列表</h2>
           </div>
-          <p className="text-sm font-medium text-text-main">
-            已装载 ULD：
-            <span className="ml-1 text-uld-border">{loadedCount}</span>
-          </p>
+          <div className="text-sm text-gray-600">
+            已装载:
+            <span className="ml-1 text-lg font-semibold text-gray-900">
+              {assignedCount}/{totalCount}
+            </span>
+          </div>
         </div>
 
         <div className="mb-4 flex flex-col gap-2 sm:flex-row">

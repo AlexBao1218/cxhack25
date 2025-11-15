@@ -103,18 +103,18 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-cabin-bg to-white">
       <DndContext onDragEnd={handleDragEnd}>
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8 sm:px-8">
+        <div className="mx-auto flex w-full max-w-[68rem] flex-col gap-6 px-4 py-8 sm:px-6">
           <Dashboard />
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-            <div className="col-span-12 rounded-[28px] bg-white p-5 shadow-lg ring-1 ring-uld-border/10 lg:col-span-8">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+            <div className="col-span-12 rounded-3xl bg-white p-5 shadow-lg ring-1 ring-uld-border/10 lg:col-span-7">
               <AircraftCabin
                 highlightPositionId={highlightPositionId}
                 highlightPositions={optimizedHighlights}
               />
             </div>
 
-            <div className="col-span-12 rounded-[28px] bg-white p-5 shadow-lg ring-1 ring-uld-border/10 lg:col-span-4">
+            <div className="col-span-12 rounded-3xl bg-white p-5 shadow-lg ring-1 ring-uld-border/10 lg:col-span-5">
               <ULDList />
             </div>
           </div>
