@@ -25,3 +25,21 @@ body {
     BlinkMacSystemFont, sans-serif;
   min-height: 100vh;
 }
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #b8c7c7 transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #b8c7c7;
+  border-radius: 999px;
+}

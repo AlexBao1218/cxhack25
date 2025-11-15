@@ -16,6 +16,8 @@ interface LayoutStore extends LayoutState {
   calculateScore: () => number;
   generateSuggestion: () => string;
   optimizeLayout: () => void;
+  clearRecentOptimizedPositions: () => void;
+  recentOptimizedPositions: string[];
 }
 
 const FIXED_POSITIONS = new Set(["A1", "A2", "B1"]);
@@ -75,6 +77,7 @@ const initialLayoutState: LayoutState = {
 
 export const useLayoutStore = create<LayoutStore>((set, get) => ({
   ...initialLayoutState,
+  recentOptimizedPositions: [],
   assignULD: (uldId, positionId) => {
     let result: ActionResult = { success: true, message: "操作成功" };
 
@@ -276,13 +279,102 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
     return suggestion;
   },
   optimizeLayout: () => {
-    const { positions, unassignedUlds } = get();
-    const cgValue = computeCGValue(positions);
-    const score = computeScoreValue(positions, unassignedUlds);
-    const suggestion =
-      "AI优化（模拟）：已重新评估装载优先级，如需进一步调整请查看空余仓位。";
+    const currentState = get();
+    if (currentState.isLoading) {
+      return;
+    }
 
-    set({ cgValue, score, suggestion });
+    set({ isLoading: true, suggestion: "AI优化进行中，请稍候..." });
+
+    setTimeout(() => {
+      const state = get();
+      const positionsClone = state.positions.map((pos) => ({ ...pos }));
+      const fixedAssigned = new Set(
+        positionsClone
+          .filter((pos) => pos.isFixed && pos.assigned_uld)
+          .map((pos) => pos.assigned_uld as string),
+      );
+
+      const movablePositions = positionsClone.filter((pos) => !pos.isFixed);
+      movablePositions.forEach((pos) => {
+        pos.assigned_uld = null;
+        pos.current_weight = 0;
+      });
+
+      const leftSlots = movablePositions
+        .filter((pos) => pos.x <= 40)
+        .sort((a, b) => a.y - b.y);
+      const rightSlots = movablePositions
+        .filter((pos) => pos.x > 40)
+        .sort((a, b) => a.y - b.y);
+
+      const sortedCandidates = state.ulds
+        .filter((uld) => !fixedAssigned.has(uld.id))
+        .sort((a, b) => b.weight - a.weight);
+
+      let leftIndex = 0;
+      let rightIndex = 0;
+      let leftLoad = 0;
+      let rightLoad = 0;
+      const touchedPositions = new Set<string>();
+
+      sortedCandidates.forEach((uld) => {
+        const leftAvailable = leftIndex < leftSlots.length;
+        const rightAvailable = rightIndex < rightSlots.length;
+
+        if (!leftAvailable && !rightAvailable) {
+          return;
+        }
+
+        let targetSide: "left" | "right" = "left";
+        if (!leftAvailable) {
+          targetSide = "right";
+        } else if (!rightAvailable) {
+          targetSide = "left";
+        } else {
+          targetSide = leftLoad <= rightLoad ? "left" : "right";
+        }
+
+        const slot =
+          targetSide === "left" ? leftSlots[leftIndex] : rightSlots[rightIndex];
+        if (!slot) {
+          return;
+        }
+
+        slot.assigned_uld = uld.id;
+        slot.current_weight = uld.weight;
+        touchedPositions.add(slot.id);
+
+        if (targetSide === "left") {
+          leftLoad += uld.weight;
+          leftIndex += 1;
+        } else {
+          rightLoad += uld.weight;
+          rightIndex += 1;
+        }
+      });
+
+      const updatedUnassigned = state.ulds.filter(
+        (uld) =>
+          !positionsClone.some(
+            (pos) => pos.assigned_uld && pos.assigned_uld === uld.id,
+          ),
+      );
+
+      const cgValue = computeCGValue(positionsClone);
+      const score = computeScoreValue(positionsClone, updatedUnassigned);
+
+      set({
+        positions: positionsClone,
+        unassignedUlds: updatedUnassigned,
+        cgValue,
+        score,
+        suggestion: "已应用AI优化方案，可继续根据需要微调。",
+        isLoading: false,
+        recentOptimizedPositions: Array.from(touchedPositions),
+      });
+    }, 1500);
   },
+  clearRecentOptimizedPositions: () => set({ recentOptimizedPositions: [] }),
 }));
 

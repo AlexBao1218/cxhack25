@@ -12,7 +12,9 @@ import type { ULD } from "@/types";
 import { useLayoutStore } from "@/store/useLayoutStore";
 
 const CARD_BASE_STYLE =
-  "group rounded-2xl border border-uld-border/20 bg-cabin-interior px-4 py-4 shadow-sm transition-transform hover:-translate-y-1 hover:shadow-lg";
+  "group rounded-2xl border border-uld-border/30 bg-cabin-interior px-4 py-4 text-text-main shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:border-uld-border";
+
+const DND_INSTRUCTIONS_ID = "dnd-kit-cargo-describedby";
 
 const ULDCard: React.FC<{ uld: ULD; withHandle?: boolean }> = ({
   uld,
@@ -60,6 +62,14 @@ const DraggableCard: React.FC<{ uld: ULD }> = ({ uld }) => {
       data: uld,
     });
 
+  const draggableAttributes = React.useMemo(
+    () => ({
+      ...attributes,
+      "aria-describedby": DND_INSTRUCTIONS_ID,
+    }),
+    [attributes],
+  );
+
   const style: React.CSSProperties = {
     transform: transform
       ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
@@ -71,9 +81,11 @@ const DraggableCard: React.FC<{ uld: ULD }> = ({ uld }) => {
       type="button"
       ref={setNodeRef}
       style={style}
-      className={`w-full cursor-grab ${isDragging ? "opacity-50" : ""}`}
+      className={`w-full cursor-grab transition active:scale-95 ${
+        isDragging ? "opacity-50" : ""
+      }`}
       {...listeners}
-      {...attributes}
+      {...draggableAttributes}
     >
       <ULDCard uld={uld} withHandle />
     </button>
@@ -110,7 +122,10 @@ const ULDList: React.FC = () => {
 
   return (
     <>
-      <aside className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl ring-1 ring-uld-border/10">
+      <span id={DND_INSTRUCTIONS_ID} className="sr-only">
+        按空格选中ULD后，可通过箭头键在布局中移动并在目标仓位释放。
+      </span>
+      <aside className="flex h-full w-full max-w-sm flex-col rounded-[28px] bg-cabin-interior p-5 text-text-main shadow-2xl ring-1 ring-uld-border/10">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-text-main">
@@ -118,27 +133,29 @@ const ULDList: React.FC = () => {
             </p>
             <h2 className="text-xl font-semibold text-uld-border">ULD 列表</h2>
           </div>
-          <Package size={24} className="text-uld-border/70" />
+          <Package size={22} className="text-uld-border/70" />
         </div>
 
         {sortedUlds.length === 0 ? (
-          <div className="flex h-40 flex-col items-center justify-center rounded-2xl bg-cabin-bg/50 text-center text-sm text-text-main">
+          <div className="flex flex-1 flex-col items-center justify-center rounded-2xl bg-cabin-bg/50 text-center text-sm text-text-main">
             <span role="img" aria-label="done">
               ✅
             </span>
             所有ULD已分配
           </div>
         ) : (
-          <div className="max-h-[32rem] space-y-3 overflow-y-auto pr-1">
-            {sortedUlds.map((uld) => (
-              <DraggableCard key={uld.id} uld={uld} />
-            ))}
+          <div className="scrollbar-thin flex-1 overflow-y-auto pr-1">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {sortedUlds.map((uld) => (
+                <DraggableCard key={uld.id} uld={uld} />
+              ))}
+            </div>
           </div>
         )}
       </aside>
       <DragOverlay>
         {activeULD ? (
-          <div className="max-w-sm opacity-90 shadow-2xl">
+          <div className="w-[260px] max-w-xs opacity-90 shadow-2xl">
             <ULDCard uld={activeULD} withHandle />
           </div>
         ) : null}

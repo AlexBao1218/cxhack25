@@ -5,6 +5,7 @@ import { useDroppable, useDndContext } from "@dnd-kit/core";
 import { Ban, Lock } from "lucide-react";
 
 import { useLayoutStore } from "@/store/useLayoutStore";
+import toast from "react-hot-toast";
 import type { Position, ULD } from "@/types";
 
 const sortPositions = (positions: Position[], prefix: string) =>
@@ -20,7 +21,8 @@ const PositionCard: React.FC<{
   position: Position;
   uld?: ULD;
   onUnassign: (positionId: string) => void;
-}> = ({ position, uld, onUnassign }) => {
+  isHighlighted?: boolean;
+}> = ({ position, uld, onUnassign, isHighlighted = false }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: position.id,
     data: { position },
@@ -58,12 +60,16 @@ const PositionCard: React.FC<{
     }
   };
 
+  const highlightClass = isHighlighted
+    ? "ring-4 ring-uld-border/60 shadow-uld-border/20"
+    : "";
+
   return (
     <div
       ref={setNodeRef}
       onClick={handleUnassign}
       role={uld && !position.isFixed ? "button" : undefined}
-      className={`relative flex h-28 w-full flex-col justify-between rounded-2xl ${borderWidth} ${borderColor} ${background} px-3 py-3 text-sm shadow-sm transition ${cursorClass}`}
+      className={`relative flex h-28 w-full flex-col justify-between rounded-2xl ${borderWidth} ${borderColor} ${background} px-3 py-3 text-sm text-text-main shadow-sm transition-all duration-200 ${cursorClass} ${highlightClass} hover:-translate-y-0.5`}
       aria-disabled={position.isFixed}
     >
       <div className="flex items-start justify-between gap-2">
@@ -129,7 +135,17 @@ const Section: React.FC<{
   right: Position[];
   ulds: ULD[];
   onUnassign: (positionId: string) => void;
-}> = ({ title, left, right, ulds, onUnassign }) => (
+  highlightPositionId?: string | null;
+  highlightPositions?: string[];
+}> = ({
+  title,
+  left,
+  right,
+  ulds,
+  onUnassign,
+  highlightPositionId,
+  highlightPositions = [],
+}) => (
   <div>
     <div className="mb-4 flex items-center justify-between">
       <h3 className="text-sm font-semibold uppercase tracking-wide text-text-main">
@@ -149,6 +165,10 @@ const Section: React.FC<{
                 : undefined
             }
             onUnassign={onUnassign}
+            isHighlighted={
+              position.id === highlightPositionId ||
+              highlightPositions.includes(position.id)
+            }
           />
         ))}
       </div>
@@ -164,6 +184,10 @@ const Section: React.FC<{
                 : undefined
             }
             onUnassign={onUnassign}
+            isHighlighted={
+              position.id === highlightPositionId ||
+              highlightPositions.includes(position.id)
+            }
           />
         ))}
       </div>
@@ -171,7 +195,15 @@ const Section: React.FC<{
   </div>
 );
 
-const AircraftCabin: React.FC = () => {
+interface AircraftCabinProps {
+  highlightPositionId?: string | null;
+  highlightPositions?: string[];
+}
+
+const AircraftCabin: React.FC<AircraftCabinProps> = ({
+  highlightPositionId = null,
+  highlightPositions = [],
+}) => {
   const positions = useLayoutStore((state) => state.positions);
   const ulds = useLayoutStore((state) => state.ulds);
   const unassignULD = useLayoutStore((state) => state.unassignULD);
@@ -180,7 +212,9 @@ const AircraftCabin: React.FC = () => {
     (positionId: string) => {
       const result = unassignULD(positionId);
       if (!result.success) {
-        console.warn(result.message);
+        toast.error(result.message);
+      } else {
+        toast.success(result.message);
       }
     },
     [unassignULD],
@@ -204,8 +238,8 @@ const AircraftCabin: React.FC = () => {
   );
 
   return (
-    <section className="bg-cabin-bg py-8 px-4 sm:px-8">
-      <div className="mx-auto w-full max-w-6xl rounded-[60px] border border-uld-border/40 bg-cabin-interior p-6 sm:p-10 shadow-2xl">
+    <section className="w-full">
+      <div className="mx-auto w-full rounded-[48px] border border-uld-border/30 bg-cabin-interior p-6 text-text-main shadow-2xl sm:p-8">
         <div className="mb-6 flex flex-col gap-2 text-text-main">
           <h2 className="text-2xl font-semibold text-uld-border">
             Boeing 747-8F Cabin Layout
@@ -215,10 +249,7 @@ const AircraftCabin: React.FC = () => {
           </p>
         </div>
 
-        <div className="relative overflow-hidden rounded-[50px] border border-uld-border/30 bg-gradient-to-b from-cabin-interior to-cabin-bg p-6">
-          <div className="absolute -left-12 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full border border-uld-border/20 bg-cabin-bg" />
-          <div className="absolute -right-16 top-1/2 h-40 w-40 -translate-y-1/2 rounded-full border border-uld-border/20 bg-cabin-bg/80" />
-
+        <div className="rounded-[36px] border border-uld-border/30 bg-cabin-interior p-6">
           <div className="space-y-10">
             <Section
               title="Main Deck"
@@ -226,6 +257,8 @@ const AircraftCabin: React.FC = () => {
               right={mainRight}
               ulds={ulds}
               onUnassign={handleUnassign}
+              highlightPositionId={highlightPositionId}
+              highlightPositions={highlightPositions}
             />
             <Section
               title="Lower Deck"
@@ -233,6 +266,8 @@ const AircraftCabin: React.FC = () => {
               right={lowerRight}
               ulds={ulds}
               onUnassign={handleUnassign}
+              highlightPositionId={highlightPositionId}
+              highlightPositions={highlightPositions}
             />
           </div>
         </div>
