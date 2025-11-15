@@ -51,18 +51,13 @@ const CGDisplay: React.FC = () => {
     <section className="rounded-[28px] bg-cabin-interior p-6 text-text-main shadow-2xl ring-1 ring-uld-border/10 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_60px_rgba(54,120,120,0.15)] sm:p-7">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.4em] text-text-main">
-            Center of Gravity
-          </p>
-          <h3 className="text-2xl font-semibold text-uld-border">
-            重心监控
-          </h3>
+          <h3 className="text-2xl font-semibold text-uld-border">重心监控</h3>
         </div>
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold text-uld-border">
             {cgValue?.toFixed(1) ?? "--"} ft
           </span>
-          <span className="text-sm text-text-main">当前 CG</span>
+          <span className="text-sm text-text-main">当前重心（纵向）</span>
         </div>
       </div>
 

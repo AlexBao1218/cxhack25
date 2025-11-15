@@ -42,12 +42,7 @@ const ScoreDisplay: React.FC = () => {
     <section className="rounded-[28px] bg-cabin-interior px-6 pb-6 pt-4 text-text-main shadow-2xl ring-1 ring-uld-border/10 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_60px_rgba(54,120,120,0.15)] sm:px-7 sm:pb-7 sm:pt-5">
       <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-1 text-left">
-          <p className="text-xs uppercase tracking-[0.4em] text-text-main">
-            Performance Score
-          </p>
-          <h3 className="text-2xl font-semibold text-uld-border">
-            智能装载评分
-          </h3>
+          <h3 className="text-2xl font-semibold text-uld-border">智能装载评分</h3>
         </div>
 
         <div className="relative mx-auto -mt-1">

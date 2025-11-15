@@ -59,7 +59,7 @@ const PositionCard: React.FC<{
   return (
     <div
       ref={setNodeRef}
-      className={`relative flex h-[84px] w-[176px] items-center justify-between rounded-lg border-2 ${borderColor} ${background} px-3 py-2 transition-all duration-75 ${cursorClass} ${highlightClass}`}
+      className={`relative flex h-[72px] w-[176px] items-center justify-between rounded-lg border-2 ${borderColor} ${background} px-3 py-2 transition-all duration-75 ${cursorClass} ${highlightClass}`}
     >
       <div className={`flex-shrink-0 text-lg font-bold ${uld ? "text-white" : "text-gray-900"}`}>
         {position.id}
@@ -266,7 +266,7 @@ const AircraftCabin: React.FC<AircraftCabinProps> = ({
       <div className="space-y-6">
         <div>
           <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-            前部仓位（第1-3排）
+            A1，A2，B1舱位
           </div>
           <div className="space-y-2">
             {["A1", "A2", "B1"].map((id) => {
@@ -291,44 +291,36 @@ const AircraftCabin: React.FC<AircraftCabinProps> = ({
 
         <div>
           <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-            主货舱（第4-18排）
+            主要舱位
           </div>
           <div className="space-y-2">
             {mainDeckRows.map(({ row, left, right }) => (
-              <div
-                key={row}
-                className="rounded-2xl border border-uld-border/20 bg-white/70 p-3 shadow-inner"
-              >
-                <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                  Row {row}
+              <div key={row} className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div className="flex justify-center sm:justify-end">
+                  {left && (
+                    <PositionCard
+                      position={left}
+                      uld={findULDById(left.assigned_uld)}
+                      onUnassign={handleUnassign}
+                      isHighlighted={
+                        left.id === highlightPositionId ||
+                        highlightPositions.includes(left.id)
+                      }
+                    />
+                  )}
                 </div>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <div className="flex justify-center sm:justify-end">
-                    {left && (
-                      <PositionCard
-                        position={left}
-                        uld={findULDById(left.assigned_uld)}
-                        onUnassign={handleUnassign}
-                        isHighlighted={
-                          left.id === highlightPositionId ||
-                          highlightPositions.includes(left.id)
-                        }
-                      />
-                    )}
-                  </div>
-                  <div className="flex justify-center sm:justify-start">
-                    {right && (
-                      <PositionCard
-                        position={right}
-                        uld={findULDById(right.assigned_uld)}
-                        onUnassign={handleUnassign}
-                        isHighlighted={
-                          right.id === highlightPositionId ||
-                          highlightPositions.includes(right.id)
-                        }
-                      />
-                    )}
-                  </div>
+                <div className="flex justify-center sm:justify-start">
+                  {right && (
+                    <PositionCard
+                      position={right}
+                      uld={findULDById(right.assigned_uld)}
+                      onUnassign={handleUnassign}
+                      isHighlighted={
+                        right.id === highlightPositionId ||
+                        highlightPositions.includes(right.id)
+                      }
+                    />
+                  )}
                 </div>
               </div>
             ))}
@@ -337,7 +329,7 @@ const AircraftCabin: React.FC<AircraftCabinProps> = ({
 
         <div>
           <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-            尾部仓位（第19排）
+            尾部舱位
           </div>
           <div className="flex justify-center">
             {TAIL_POSITION_IDS.map((id) => {

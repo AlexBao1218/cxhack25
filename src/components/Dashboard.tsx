@@ -7,7 +7,7 @@ import CGDisplay from "@/components/CGDisplay";
 import ScoreDisplay from "@/components/ScoreDisplay";
 const Dashboard: React.FC = () => {
   return (
-    <section className="rounded-[32px] bg-cabin-bg/60 p-6 shadow-inner ring-1 ring-uld-border/10 transition-all duration-200 hover:-translate-y-0.5 sm:p-8">
+    <>
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
@@ -43,7 +43,7 @@ const Dashboard: React.FC = () => {
         <CGDisplay />
         <ScoreDisplay />
       </div>
-    </section>
+    </>
   );
 };
 
