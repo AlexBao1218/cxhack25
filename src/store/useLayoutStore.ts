@@ -1,12 +1,46 @@
 import { create } from "zustand";
 
-import mockData from "@/data/mockData.json";
+import cx2025Data from "@/data/cx2025.json";
 import type { LayoutState, Position, ULD } from "@/types";
 
 type ActionResult = {
   success: boolean;
   message: string;
 };
+
+type LayoutSnapshot = Omit<LayoutState, "currentFlightNumber">;
+
+const FLIGHT_NUMBER_REGEX = /^CX\d{4}$/i;
+
+const cloneLayoutFromSnapshot = (
+  snapshot: LayoutSnapshot,
+): LayoutSnapshot => {
+  const positions = snapshot.positions.map((pos) => ({ ...pos }));
+  const ulds = snapshot.ulds.map((uld) => ({ ...uld }));
+  const unassignedUlds = snapshot.unassignedUlds.map((uld) => ({ ...uld }));
+
+  const cgValue = computeCGValue(positions);
+  const score = computeScoreValue(positions, unassignedUlds);
+  const suggestion = buildSuggestion(positions, unassignedUlds);
+
+  return {
+    positions,
+    ulds,
+    unassignedUlds,
+    cgValue,
+    score,
+    suggestion,
+    isLoading: false,
+  };
+};
+
+const createLayoutStateFromSnapshot = (
+  snapshot: LayoutSnapshot,
+  flightNumber: string,
+): LayoutState => ({
+  ...cloneLayoutFromSnapshot(snapshot),
+  currentFlightNumber: flightNumber,
+});
 
 interface LayoutStore extends LayoutState {
   assignULD: (uldId: string, positionId: string) => ActionResult;
@@ -16,7 +50,10 @@ interface LayoutStore extends LayoutState {
   calculateScore: () => number;
   generateSuggestion: () => string;
   optimizeLayout: () => void;
+  resetLayout: () => void;
   clearRecentOptimizedPositions: () => void;
+  loadFlightData: (flightNumber: string) => Promise<boolean>;
+  clearAllAssignments: () => void;
   recentOptimizedPositions: string[];
 }
 
@@ -64,24 +101,53 @@ const buildSuggestion = (positions: Position[], unassigned: ULD[]): string => {
   return "布局均衡，保持当前装载策略。";
 };
 
-const mockLayoutState = mockData.layoutState as LayoutState;
+const DEFAULT_FLIGHT_NUMBER = "CX2025";
+const cx2025Snapshot = cx2025Data.layoutState as LayoutSnapshot;
 
-const initialLayoutState: LayoutState = {
-  ...mockLayoutState,
-  positions: mockLayoutState.positions.map((pos) => ({ ...pos })),
-  ulds: mockLayoutState.ulds.map((uld) => ({ ...uld })),
-  unassignedUlds: mockLayoutState.unassignedUlds.map((uld) => ({ ...uld })),
-};
-
-const FIXED_POSITIONS = new Set(
-  initialLayoutState.positions
-    .filter((pos) => pos.isFixed)
-    .map((pos) => pos.id),
+const initialLayoutState = createLayoutStateFromSnapshot(
+  cx2025Snapshot,
+  DEFAULT_FLIGHT_NUMBER,
 );
 
 export const useLayoutStore = create<LayoutStore>((set, get) => ({
   ...initialLayoutState,
   recentOptimizedPositions: [],
+  loadFlightData: async (flightNumber) => {
+    const normalized = flightNumber.toUpperCase();
+    if (!FLIGHT_NUMBER_REGEX.test(normalized)) {
+      return false;
+    }
+
+    const state = get();
+    if (state.isLoading) {
+      return false;
+    }
+
+    if (state.currentFlightNumber === normalized) {
+      return true;
+    }
+
+    set({ isLoading: true, recentOptimizedPositions: [] });
+
+    try {
+      const fileName = normalized.toLowerCase();
+      const dataModule = (await import(`../data/${fileName}.json`)) as {
+        default: { layoutState: LayoutSnapshot };
+      };
+      const snapshot = dataModule.default.layoutState;
+      const nextState = createLayoutStateFromSnapshot(snapshot, normalized);
+
+      set({
+        ...nextState,
+        recentOptimizedPositions: [],
+      });
+      return true;
+    } catch (error) {
+      console.error(`航班数据 ${normalized} 加载失败`, error);
+      set({ isLoading: false });
+      return false;
+    }
+  },
   assignULD: (uldId, positionId) => {
     let result: ActionResult = { success: true, message: "操作成功" };
 
@@ -94,7 +160,7 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
         return {};
       }
 
-      if (FIXED_POSITIONS.has(targetPosition.id)) {
+      if (targetPosition.isFixed) {
         result = { success: false, message: `${positionId} 为固定仓位，无法调整` };
         return {};
       }
@@ -110,11 +176,6 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
       const uldToAssign = state.unassignedUlds.find((uld) => uld.id === uldId);
       if (!uldToAssign) {
         result = { success: false, message: `ULD ${uldId} 当前不可用` };
-        return {};
-      }
-
-      if (uldToAssign.weight > targetPosition.max_weight) {
-        result = { success: false, message: `${positionId} 承重不足` };
         return {};
       }
 
@@ -157,7 +218,7 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
         return {};
       }
 
-      if (FIXED_POSITIONS.has(targetPosition.id)) {
+      if (targetPosition.isFixed) {
         result = { success: false, message: `${positionId} 为固定仓位，无法调整` };
         return {};
       }
@@ -208,7 +269,7 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
         return {};
       }
 
-      if (FIXED_POSITIONS.has(targetPosition.id)) {
+      if (targetPosition.isFixed) {
         result = { success: false, message: `${positionId} 为固定仓位，无法调整` };
         return {};
       }
@@ -221,11 +282,6 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
       const incomingULD = state.unassignedUlds.find((uld) => uld.id === uldId);
       if (!incomingULD) {
         result = { success: false, message: `ULD ${uldId} 当前不可用` };
-        return {};
-      }
-
-      if (incomingULD.weight > targetPosition.max_weight) {
-        result = { success: false, message: `${positionId} 承重不足` };
         return {};
       }
 
@@ -378,6 +434,65 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
         recentOptimizedPositions: Array.from(touchedPositions),
       });
     }, 1500);
+  },
+  resetLayout: () => {
+    set((state) => {
+      const releasedUlds = state.positions
+        .filter((pos) => !pos.isFixed && pos.assigned_uld)
+        .map(
+          (pos) =>
+            state.ulds.find((uld) => uld.id === pos.assigned_uld) ?? null,
+        )
+        .filter((uld): uld is ULD => Boolean(uld))
+        .map((uld) => ({ ...uld }));
+
+      const unassignedClones = state.unassignedUlds.map((uld) => ({
+        ...uld,
+      }));
+
+      const restoredUnassigned = [...unassignedClones, ...releasedUlds];
+
+      const resetPositions = state.positions.map((pos) =>
+        pos.isFixed
+          ? { ...pos }
+          : { ...pos, assigned_uld: null, current_weight: 0 },
+      );
+
+      const cgValue = computeCGValue(resetPositions);
+      const score = computeScoreValue(resetPositions, restoredUnassigned);
+      const suggestion = buildSuggestion(resetPositions, restoredUnassigned);
+
+      return {
+        positions: resetPositions,
+        unassignedUlds: restoredUnassigned,
+        cgValue,
+        score,
+        suggestion,
+        isLoading: false,
+        recentOptimizedPositions: [],
+      };
+    });
+  },
+  clearAllAssignments: () => {
+    set((state) => {
+      const resetPositions = state.positions.map((pos) => ({
+        ...pos,
+        assigned_uld: null,
+        current_weight: 0,
+      }));
+
+      const unassignedUlds = state.ulds.map((uld) => ({ ...uld }));
+
+      return {
+        positions: resetPositions,
+        unassignedUlds,
+        cgValue: 50,
+        score: 0,
+        suggestion: "所有ULD已清空，请开始装载",
+        isLoading: false,
+        recentOptimizedPositions: [],
+      };
+    });
   },
   clearRecentOptimizedPositions: () => set({ recentOptimizedPositions: [] }),
 }));

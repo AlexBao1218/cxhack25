@@ -311,239 +311,239 @@
     "ulds": [
       {
         "id": "ULD-A",
-        "weight": 1790,
-        "volume": 14,
+        "weight": 1820,
+        "volume": 7,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-B",
-        "weight": 1963,
-        "volume": 7.7,
+        "weight": 1993,
+        "volume": 10.7,
         "isPriority": true,
         "type": "AMA"
       },
       {
         "id": "ULD-C",
-        "weight": 2136,
-        "volume": 11.4,
+        "weight": 2166,
+        "volume": 14.4,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-D",
-        "weight": 2309,
-        "volume": 5.1,
+        "weight": 2339,
+        "volume": 8.1,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-E",
-        "weight": 2482,
-        "volume": 8.8,
+        "weight": 2512,
+        "volume": 11.8,
         "isPriority": true,
         "type": "AKE"
       },
       {
         "id": "ULD-F",
-        "weight": 2655,
-        "volume": 12.5,
+        "weight": 2685,
+        "volume": 5.5,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-G",
-        "weight": 2828,
-        "volume": 6.2,
+        "weight": 2858,
+        "volume": 9.2,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-H",
-        "weight": 3001,
-        "volume": 9.9,
+        "weight": 3031,
+        "volume": 12.9,
         "isPriority": true,
         "type": "AMA"
       },
       {
         "id": "ULD-I",
-        "weight": 3174,
-        "volume": 13.6,
+        "weight": 3204,
+        "volume": 6.6,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-J",
-        "weight": 3347,
-        "volume": 7.3,
+        "weight": 3377,
+        "volume": 10.3,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-K",
-        "weight": 3520,
-        "volume": 11,
+        "weight": 3550,
+        "volume": 14,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-L",
-        "weight": 3693,
-        "volume": 14.7,
+        "weight": 3723,
+        "volume": 7.7,
         "isPriority": true,
         "type": "AMA"
       },
       {
         "id": "ULD-M",
-        "weight": 3866,
-        "volume": 8.4,
+        "weight": 3896,
+        "volume": 11.4,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-N",
-        "weight": 4039,
-        "volume": 12.1,
+        "weight": 4069,
+        "volume": 5.1,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-O",
-        "weight": 4212,
-        "volume": 5.8,
+        "weight": 4242,
+        "volume": 8.8,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-P",
-        "weight": 4385,
-        "volume": 9.5,
+        "weight": 4415,
+        "volume": 12.5,
         "isPriority": true,
         "type": "AMA"
       },
       {
         "id": "ULD-Q",
-        "weight": 4558,
-        "volume": 13.2,
+        "weight": 4588,
+        "volume": 6.2,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-R",
-        "weight": 4731,
-        "volume": 6.9,
+        "weight": 4761,
+        "volume": 9.9,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-S",
-        "weight": 1704,
-        "volume": 10.6,
+        "weight": 1734,
+        "volume": 13.6,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-T",
-        "weight": 1877,
-        "volume": 14.3,
+        "weight": 1907,
+        "volume": 7.3,
         "isPriority": true,
         "type": "AMA"
       },
       {
         "id": "ULD-U",
-        "weight": 2050,
-        "volume": 8,
+        "weight": 2080,
+        "volume": 11,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-V",
-        "weight": 2223,
-        "volume": 11.7,
+        "weight": 2253,
+        "volume": 14.7,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-W",
-        "weight": 2396,
-        "volume": 5.4,
+        "weight": 2426,
+        "volume": 8.4,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-X",
-        "weight": 2569,
-        "volume": 9.1,
+        "weight": 2599,
+        "volume": 12.1,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-Y",
-        "weight": 2742,
-        "volume": 12.8,
+        "weight": 2772,
+        "volume": 5.8,
         "isPriority": true,
         "type": "AKE"
       },
       {
         "id": "ULD-Z",
-        "weight": 2915,
-        "volume": 6.5,
+        "weight": 2945,
+        "volume": 9.5,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-AA",
-        "weight": 3088,
-        "volume": 10.2,
+        "weight": 3118,
+        "volume": 13.2,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-AB",
-        "weight": 3261,
-        "volume": 13.9,
+        "weight": 3291,
+        "volume": 6.9,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-AC",
-        "weight": 3434,
-        "volume": 7.6,
+        "weight": 3464,
+        "volume": 10.6,
         "isPriority": true,
         "type": "AKE"
       },
       {
         "id": "ULD-AD",
-        "weight": 3607,
-        "volume": 11.3,
+        "weight": 3637,
+        "volume": 14.3,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-AE",
-        "weight": 3780,
-        "volume": 5,
+        "weight": 3810,
+        "volume": 8,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-AF",
-        "weight": 3953,
-        "volume": 8.7,
+        "weight": 3983,
+        "volume": 11.7,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-AG",
-        "weight": 4126,
-        "volume": 12.4,
+        "weight": 4156,
+        "volume": 5.4,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-AH",
-        "weight": 4299,
-        "volume": 6.1,
+        "weight": 4329,
+        "volume": 9.1,
         "isPriority": false,
         "type": "AMA"
       }
@@ -551,246 +551,246 @@
     "unassignedUlds": [
       {
         "id": "ULD-A",
-        "weight": 1790,
-        "volume": 14,
+        "weight": 1820,
+        "volume": 7,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-B",
-        "weight": 1963,
-        "volume": 7.7,
+        "weight": 1993,
+        "volume": 10.7,
         "isPriority": true,
         "type": "AMA"
       },
       {
         "id": "ULD-C",
-        "weight": 2136,
-        "volume": 11.4,
+        "weight": 2166,
+        "volume": 14.4,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-D",
-        "weight": 2309,
-        "volume": 5.1,
+        "weight": 2339,
+        "volume": 8.1,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-E",
-        "weight": 2482,
-        "volume": 8.8,
+        "weight": 2512,
+        "volume": 11.8,
         "isPriority": true,
         "type": "AKE"
       },
       {
         "id": "ULD-F",
-        "weight": 2655,
-        "volume": 12.5,
+        "weight": 2685,
+        "volume": 5.5,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-G",
-        "weight": 2828,
-        "volume": 6.2,
+        "weight": 2858,
+        "volume": 9.2,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-H",
-        "weight": 3001,
-        "volume": 9.9,
+        "weight": 3031,
+        "volume": 12.9,
         "isPriority": true,
         "type": "AMA"
       },
       {
         "id": "ULD-I",
-        "weight": 3174,
-        "volume": 13.6,
+        "weight": 3204,
+        "volume": 6.6,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-J",
-        "weight": 3347,
-        "volume": 7.3,
+        "weight": 3377,
+        "volume": 10.3,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-K",
-        "weight": 3520,
-        "volume": 11,
+        "weight": 3550,
+        "volume": 14,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-L",
-        "weight": 3693,
-        "volume": 14.7,
+        "weight": 3723,
+        "volume": 7.7,
         "isPriority": true,
         "type": "AMA"
       },
       {
         "id": "ULD-M",
-        "weight": 3866,
-        "volume": 8.4,
+        "weight": 3896,
+        "volume": 11.4,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-N",
-        "weight": 4039,
-        "volume": 12.1,
+        "weight": 4069,
+        "volume": 5.1,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-O",
-        "weight": 4212,
-        "volume": 5.8,
+        "weight": 4242,
+        "volume": 8.8,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-P",
-        "weight": 4385,
-        "volume": 9.5,
+        "weight": 4415,
+        "volume": 12.5,
         "isPriority": true,
         "type": "AMA"
       },
       {
         "id": "ULD-Q",
-        "weight": 4558,
-        "volume": 13.2,
+        "weight": 4588,
+        "volume": 6.2,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-R",
-        "weight": 4731,
-        "volume": 6.9,
+        "weight": 4761,
+        "volume": 9.9,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-S",
-        "weight": 1704,
-        "volume": 10.6,
+        "weight": 1734,
+        "volume": 13.6,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-T",
-        "weight": 1877,
-        "volume": 14.3,
+        "weight": 1907,
+        "volume": 7.3,
         "isPriority": true,
         "type": "AMA"
       },
       {
         "id": "ULD-U",
-        "weight": 2050,
-        "volume": 8,
+        "weight": 2080,
+        "volume": 11,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-V",
-        "weight": 2223,
-        "volume": 11.7,
+        "weight": 2253,
+        "volume": 14.7,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-W",
-        "weight": 2396,
-        "volume": 5.4,
+        "weight": 2426,
+        "volume": 8.4,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-X",
-        "weight": 2569,
-        "volume": 9.1,
+        "weight": 2599,
+        "volume": 12.1,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-Y",
-        "weight": 2742,
-        "volume": 12.8,
+        "weight": 2772,
+        "volume": 5.8,
         "isPriority": true,
         "type": "AKE"
       },
       {
         "id": "ULD-Z",
-        "weight": 2915,
-        "volume": 6.5,
+        "weight": 2945,
+        "volume": 9.5,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-AA",
-        "weight": 3088,
-        "volume": 10.2,
+        "weight": 3118,
+        "volume": 13.2,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-AB",
-        "weight": 3261,
-        "volume": 13.9,
+        "weight": 3291,
+        "volume": 6.9,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-AC",
-        "weight": 3434,
-        "volume": 7.6,
+        "weight": 3464,
+        "volume": 10.6,
         "isPriority": true,
         "type": "AKE"
       },
       {
         "id": "ULD-AD",
-        "weight": 3607,
-        "volume": 11.3,
+        "weight": 3637,
+        "volume": 14.3,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-AE",
-        "weight": 3780,
-        "volume": 5,
+        "weight": 3810,
+        "volume": 8,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-AF",
-        "weight": 3953,
-        "volume": 8.7,
+        "weight": 3983,
+        "volume": 11.7,
         "isPriority": false,
         "type": "AMA"
       },
       {
         "id": "ULD-AG",
-        "weight": 4126,
-        "volume": 12.4,
+        "weight": 4156,
+        "volume": 5.4,
         "isPriority": false,
         "type": "AKE"
       },
       {
         "id": "ULD-AH",
-        "weight": 4299,
-        "volume": 6.1,
+        "weight": 4329,
+        "volume": 9.1,
         "isPriority": false,
         "type": "AMA"
       }
     ],
-    "cgValue": 51.3,
-    "score": 84,
-    "suggestion": "示例布局：34个仓位覆盖机头、主货舱与尾部，可用于演示与测试。",
+    "cgValue": 52.1,
+    "score": 82,
+    "suggestion": "CX1234：高优先级ULD需优先进入中部主货舱，尾部仓位保持空载以便调节。",
     "isLoading": false
   }
 }

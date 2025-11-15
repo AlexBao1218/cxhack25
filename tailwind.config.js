@@ -11,6 +11,8 @@ module.exports = {
         "uld-border": "#367878",
         "uld-assigned": "#367878",
         "text-main": "rgb(129,130,133)",
+        "cathay-jade": "#005D63",
+        "cathay-saffron": "#C2262E",
       },
     },
   },

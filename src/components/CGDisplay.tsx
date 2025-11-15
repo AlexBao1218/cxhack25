@@ -6,6 +6,13 @@ import { ArrowRight } from "lucide-react";
 import { useLayoutStore } from "@/store/useLayoutStore";
 
 const BEST_RANGE = { min: 20, max: 30 };
+const BAR_OFFSET_FROM_CENTER = 18;
+const TRIANGLE_HEIGHT = 14;
+const TRIANGLE_WIDTH = 18;
+const TRIANGLE_COLOR = "#f97316";
+const TRIANGLE_BAR_GAP = 18;
+const BASE_BADGE_PADDING = 14; // px baseline padding
+const EXTRA_PADDING_PER_PERCENT = 2; // px increase per percent offset
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
@@ -34,9 +41,11 @@ const CGDisplay: React.FC = () => {
       ? "rotate-180 origin-center"
       : "origin-center";
 
-  const arrowLeft = offset > 0
-    ? `calc(${BEST_RANGE.max}% + 10px)`
-    : `calc(${BEST_RANGE.min}% - 10px)`;
+  const absOffset = Math.abs(offset);
+  const extraPadding = absOffset * EXTRA_PADDING_PER_PERCENT;
+  const dynamicPadding = BASE_BADGE_PADDING + extraPadding / 2;
+
+  const triangleTop = `calc(50% + ${BAR_OFFSET_FROM_CENTER - TRIANGLE_BAR_GAP}px)`;
 
   return (
     <section className="rounded-[28px] bg-cabin-interior p-6 text-text-main shadow-2xl ring-1 ring-uld-border/10 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_60px_rgba(54,120,120,0.15)] sm:p-7">
@@ -84,13 +93,23 @@ const CGDisplay: React.FC = () => {
                   CG: {cgPercent.toFixed(1)}%
                 </div>
                 <div
-                  className="absolute z-20 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 shadow-md transition-all duration-300"
+                  className="absolute z-20 flex items-center justify-center transition-all duration-300"
                   style={{
                     left: indicatorLeft,
-                    top: "50%",
-                    transform: "translate(-50%, -50%)",
+                    top: triangleTop,
+                    transform: "translateX(-50%)",
                   }}
-                />
+                >
+                  <div
+                    className="h-0 w-0"
+                    style={{
+                      borderLeft: `${TRIANGLE_WIDTH / 2}px solid transparent`,
+                      borderRight: `${TRIANGLE_WIDTH / 2}px solid transparent`,
+                      borderBottom: `${TRIANGLE_HEIGHT}px solid ${TRIANGLE_COLOR}`,
+                      filter: "drop-shadow(0px 3px 6px rgba(249, 115, 22, 0.35))",
+                    }}
+                  />
+                </div>
                 <span className="absolute left-0 -top-8 text-xs font-semibold text-slate-400">
                   Nose
                 </span>
@@ -99,12 +118,14 @@ const CGDisplay: React.FC = () => {
                 </span>
                 {!isWithinBestRange && (
                   <div
-                    className="absolute z-20 flex items-center gap-2 rounded-full bg-yellow-400/90 px-3 py-1 text-xs font-semibold text-yellow-900 transition-all duration-300"
+                    className="absolute z-20 flex h-8 items-center justify-center gap-2 rounded-full bg-yellow-400/90 py-1 text-xs font-semibold text-yellow-900 transition-all duration-300"
                     style={{
-                      left: arrowLeft,
-                      top: "100%",
-                      transform:
-                        offset > 0 ? "translateX(0%)" : "translateX(-100%)",
+                      left: indicatorLeft,
+                      top: "calc(100% + 12px)",
+                      transform: "translateX(-50%)",
+                      paddingLeft: `${dynamicPadding}px`,
+                      paddingRight: `${dynamicPadding}px`,
+                      whiteSpace: "nowrap",
                     }}
                   >
                     <ArrowRight
@@ -122,12 +143,14 @@ const CGDisplay: React.FC = () => {
         <div className="flex flex-wrap items-center gap-4 text-sm text-text-main">
           <div className="flex items-center gap-2">
             <span className="block h-3 w-3 rounded-full bg-green-400" />
-            最佳重心范围 {BEST_RANGE.min}% - {BEST_RANGE.max}%
+            可接受重心范围 {BEST_RANGE.min}% - {BEST_RANGE.max}%
           </div>
           {!isWithinBestRange && (
-            <div className="flex items-center gap-2 text-orange-600">
-              <span className="block h-3 w-3 rounded-full bg-orange-500" />
-              已偏离最佳范围，请调整装载
+            <div className="flex items-center gap-2 text-yellow-600">
+              <span className="block h-3 w-3 rounded-full bg-yellow-400" />
+              <span className="text-yellow-600">
+                已偏离可接受范围，请调整装载
+              </span>
             </div>
           )}
           {isWithinBestRange && (

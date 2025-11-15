@@ -24,5 +24,6 @@ export interface LayoutState {
   score: number;
   suggestion: string;
   isLoading: boolean;
+  currentFlightNumber: string;
 }
 
