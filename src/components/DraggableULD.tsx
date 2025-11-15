@@ -33,6 +33,13 @@ const DraggableULD: React.FC<DraggableULDProps> = ({
       },
     });
 
+  const draggableAttributes = ariaDescribedBy
+    ? {
+        ...attributes,
+        "aria-describedby": ariaDescribedBy,
+      }
+    : attributes;
+
   const style: React.CSSProperties | undefined = transform
     ? {
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
@@ -46,9 +53,8 @@ const DraggableULD: React.FC<DraggableULDProps> = ({
       className={`cursor-grab active:cursor-grabbing ${
         isDragging ? "opacity-60" : ""
       } ${className ?? ""}`}
-      aria-describedby={ariaDescribedBy}
       {...listeners}
-      {...attributes}
+      {...draggableAttributes}
     >
       {children}
     </div>
