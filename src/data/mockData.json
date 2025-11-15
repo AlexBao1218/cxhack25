@@ -1,0 +1,61 @@
+{
+  "layoutState": {
+    "positions": [
+      { "id": "L1", "x": 10, "y": 10, "max_weight": 5000, "current_weight": 0, "assigned_uld": null, "isFixed": false },
+      { "id": "L2", "x": 10, "y": 22, "max_weight": 5000, "current_weight": 0, "assigned_uld": null, "isFixed": false },
+      { "id": "L3", "x": 10, "y": 34, "max_weight": 5200, "current_weight": 0, "assigned_uld": null, "isFixed": false },
+      { "id": "L4", "x": 10, "y": 46, "max_weight": 5200, "current_weight": 0, "assigned_uld": null, "isFixed": false },
+      { "id": "L5", "x": 10, "y": 58, "max_weight": 5400, "current_weight": 0, "assigned_uld": null, "isFixed": false },
+      { "id": "R1", "x": 70, "y": 10, "max_weight": 5000, "current_weight": 0, "assigned_uld": null, "isFixed": false },
+      { "id": "R2", "x": 70, "y": 22, "max_weight": 5000, "current_weight": 0, "assigned_uld": null, "isFixed": false },
+      { "id": "R3", "x": 70, "y": 34, "max_weight": 5200, "current_weight": 0, "assigned_uld": null, "isFixed": false },
+      { "id": "R4", "x": 70, "y": 46, "max_weight": 5200, "current_weight": 0, "assigned_uld": null, "isFixed": false },
+      { "id": "R5", "x": 70, "y": 58, "max_weight": 5400, "current_weight": 0, "assigned_uld": null, "isFixed": false },
+      { "id": "A1", "x": 25, "y": 75, "max_weight": 4200, "current_weight": 0, "assigned_uld": null, "isFixed": true },
+      { "id": "A2", "x": 25, "y": 87, "max_weight": 4200, "current_weight": 0, "assigned_uld": null, "isFixed": true },
+      { "id": "A3", "x": 25, "y": 99, "max_weight": 4200, "current_weight": 0, "assigned_uld": null, "isFixed": false },
+      { "id": "B1", "x": 55, "y": 75, "max_weight": 4200, "current_weight": 0, "assigned_uld": null, "isFixed": true },
+      { "id": "B2", "x": 55, "y": 87, "max_weight": 4200, "current_weight": 0, "assigned_uld": null, "isFixed": false },
+      { "id": "B3", "x": 55, "y": 99, "max_weight": 4200, "current_weight": 0, "assigned_uld": null, "isFixed": false }
+    ],
+    "ulds": [
+      { "id": "ULD-A", "weight": 1850, "volume": 7.4, "isPriority": false, "type": "AKE" },
+      { "id": "ULD-B", "weight": 2200, "volume": 8.1, "isPriority": false, "type": "AKE" },
+      { "id": "ULD-C", "weight": 3400, "volume": 10.2, "isPriority": true, "type": "AMA" },
+      { "id": "ULD-D", "weight": 2950, "volume": 6.8, "isPriority": false, "type": "AKE" },
+      { "id": "ULD-E", "weight": 4100, "volume": 12.5, "isPriority": false, "type": "AMA" },
+      { "id": "ULD-F", "weight": 3600, "volume": 11.3, "isPriority": false, "type": "AMA" },
+      { "id": "ULD-G", "weight": 2700, "volume": 9.5, "isPriority": true, "type": "AKE" },
+      { "id": "ULD-H", "weight": 1300, "volume": 5.8, "isPriority": false, "type": "AKE" },
+      { "id": "ULD-I", "weight": 4700, "volume": 14.0, "isPriority": false, "type": "AMA" },
+      { "id": "ULD-J", "weight": 2550, "volume": 6.2, "isPriority": false, "type": "AKE" },
+      { "id": "ULD-K", "weight": 3200, "volume": 9.1, "isPriority": false, "type": "AMA" },
+      { "id": "ULD-L", "weight": 1500, "volume": 5.5, "isPriority": true, "type": "AKE" },
+      { "id": "ULD-M", "weight": 4300, "volume": 13.6, "isPriority": false, "type": "AMA" },
+      { "id": "ULD-N", "weight": 2000, "volume": 7.9, "isPriority": false, "type": "AKE" },
+      { "id": "ULD-O", "weight": 3800, "volume": 10.8, "isPriority": false, "type": "AMA" }
+    ],
+    "unassignedUlds": [
+      { "id": "ULD-A", "weight": 1850, "volume": 7.4, "isPriority": false, "type": "AKE" },
+      { "id": "ULD-B", "weight": 2200, "volume": 8.1, "isPriority": false, "type": "AKE" },
+      { "id": "ULD-C", "weight": 3400, "volume": 10.2, "isPriority": true, "type": "AMA" },
+      { "id": "ULD-D", "weight": 2950, "volume": 6.8, "isPriority": false, "type": "AKE" },
+      { "id": "ULD-E", "weight": 4100, "volume": 12.5, "isPriority": false, "type": "AMA" },
+      { "id": "ULD-F", "weight": 3600, "volume": 11.3, "isPriority": false, "type": "AMA" },
+      { "id": "ULD-G", "weight": 2700, "volume": 9.5, "isPriority": true, "type": "AKE" },
+      { "id": "ULD-H", "weight": 1300, "volume": 5.8, "isPriority": false, "type": "AKE" },
+      { "id": "ULD-I", "weight": 4700, "volume": 14.0, "isPriority": false, "type": "AMA" },
+      { "id": "ULD-J", "weight": 2550, "volume": 6.2, "isPriority": false, "type": "AKE" },
+      { "id": "ULD-K", "weight": 3200, "volume": 9.1, "isPriority": false, "type": "AMA" },
+      { "id": "ULD-L", "weight": 1500, "volume": 5.5, "isPriority": true, "type": "AKE" },
+      { "id": "ULD-M", "weight": 4300, "volume": 13.6, "isPriority": false, "type": "AMA" },
+      { "id": "ULD-N", "weight": 2000, "volume": 7.9, "isPriority": false, "type": "AKE" },
+      { "id": "ULD-O", "weight": 3800, "volume": 10.8, "isPriority": false, "type": "AMA" }
+    ],
+    "cgValue": 51.3,
+    "score": 86,
+    "suggestion": "保持当前装载策略，优先填充固定仓位并监控优先ULD。",
+    "isLoading": false
+  }
+}
+
