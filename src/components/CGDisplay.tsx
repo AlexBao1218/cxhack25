@@ -5,7 +5,7 @@ import { ArrowRight } from "lucide-react";
 
 import { useLayoutStore } from "@/store/useLayoutStore";
 
-const BEST_RANGE = { min: 20, max: 30 };
+const BEST_RANGE = { min: 20, max: 30 }; // 单位：英尺
 const BAR_OFFSET_FROM_CENTER = 18;
 const TRIANGLE_HEIGHT = 14;
 const TRIANGLE_WIDTH = 18;
@@ -20,29 +20,29 @@ const clamp = (value: number, min: number, max: number) =>
 const CGDisplay: React.FC = () => {
   const cgValue = useLayoutStore((state) => state.cgValue);
 
-  const cgPercent = clamp(cgValue ?? 0, 0, 100);
-  const indicatorLeft = `calc(${cgPercent}% - 10px)`;
+  const cgFeet = clamp(cgValue ?? 0, 0, 100);
+  const indicatorLeft = `calc(${cgFeet}% - 10px)`;
   const isWithinBestRange =
-    cgPercent >= BEST_RANGE.min && cgPercent <= BEST_RANGE.max;
-  const offset =
-    cgPercent < BEST_RANGE.min
-      ? cgPercent - BEST_RANGE.min
-      : cgPercent > BEST_RANGE.max
-        ? cgPercent - BEST_RANGE.max
+    cgFeet >= BEST_RANGE.min && cgFeet <= BEST_RANGE.max;
+  const offsetFeet =
+    cgFeet < BEST_RANGE.min
+      ? cgFeet - BEST_RANGE.min
+      : cgFeet > BEST_RANGE.max
+        ? cgFeet - BEST_RANGE.max
         : 0;
   const offsetLabel =
-    offset === 0
+    offsetFeet === 0
       ? ""
-      : `${offset > 0 ? "+" : ""}${offset.toFixed(1)}%`;
+      : `${offsetFeet > 0 ? "+" : ""}${Math.abs(offsetFeet).toFixed(1)} ft`;
 
-  const arrowDirection = offset < 0 ? "left" : "right";
+  const arrowDirection = offsetFeet < 0 ? "left" : "right";
   const arrowStyle =
     arrowDirection === "left"
       ? "rotate-180 origin-center"
       : "origin-center";
 
-  const absOffset = Math.abs(offset);
-  const extraPadding = absOffset * EXTRA_PADDING_PER_PERCENT;
+  const absOffsetFeet = Math.abs(offsetFeet);
+  const extraPadding = absOffsetFeet * EXTRA_PADDING_PER_PERCENT;
   const dynamicPadding = BASE_BADGE_PADDING + extraPadding / 2;
 
   const triangleTop = `calc(50% + ${BAR_OFFSET_FROM_CENTER - TRIANGLE_BAR_GAP}px)`;
@@ -60,7 +60,7 @@ const CGDisplay: React.FC = () => {
         </div>
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold text-uld-border">
-            {cgValue?.toFixed(1) ?? "--"}%
+            {cgValue?.toFixed(1) ?? "--"} ft
           </span>
           <span className="text-sm text-text-main">当前 CG</span>
         </div>
@@ -73,7 +73,7 @@ const CGDisplay: React.FC = () => {
               <div className="absolute inset-x-0 top-1/2">
                 <div className="relative h-8 -translate-y-1/2 rounded-full border-2 border-slate-300 bg-white">
                   <div
-                    className="absolute top-1/2 h-8 -translate-y-1/2 rounded-full bg-green-400/30"
+                    className="absolute top-1/2 h-8 -translate-y-1/2 rounded-full bg-light-jade"
                     style={{
                       left: `${BEST_RANGE.min}%`,
                       width: `${BEST_RANGE.max - BEST_RANGE.min}%`,
@@ -90,7 +90,7 @@ const CGDisplay: React.FC = () => {
                     transform: "translateX(-50%)",
                   }}
                 >
-                  CG: {cgPercent.toFixed(1)}%
+                  CG: {cgFeet.toFixed(1)} ft
                 </div>
                 <div
                   className="absolute z-20 flex items-center justify-center transition-all duration-300"
@@ -140,15 +140,15 @@ const CGDisplay: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 text-sm text-text-main">
+        <div className="flex flex-wrap items-center gap-4 text-base font-medium text-text-main">
           <div className="flex items-center gap-2">
-            <span className="block h-3 w-3 rounded-full bg-green-400" />
-            可接受重心范围 {BEST_RANGE.min}% - {BEST_RANGE.max}%
+            <span className="block h-3 w-3 rounded-full bg-light-jade" />
+            可接受重心范围 {BEST_RANGE.min} ft - {BEST_RANGE.max} ft
           </div>
           {!isWithinBestRange && (
-            <div className="flex items-center gap-2 text-yellow-600">
+            <div className="flex items-center gap-2 text-yellow-700">
               <span className="block h-3 w-3 rounded-full bg-yellow-400" />
-              <span className="text-yellow-600">
+              <span className="font-semibold">
                 已偏离可接受范围，请调整装载
               </span>
             </div>

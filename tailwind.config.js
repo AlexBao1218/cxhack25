@@ -13,6 +13,7 @@ module.exports = {
         "text-main": "rgb(129,130,133)",
         "cathay-jade": "#005D63",
         "cathay-saffron": "#C2262E",
+        "light-jade": "#6FA088",
       },
     },
   },

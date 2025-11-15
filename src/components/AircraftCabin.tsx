@@ -60,7 +60,7 @@ const PositionCard: React.FC<{
       ref={setNodeRef}
       onClick={handleUnassign}
       role={uld ? "button" : undefined}
-      className={`relative flex h-[84px] w-[176px] items-center justify-between rounded-lg border-2 ${borderColor} ${background} px-3 py-2 transition-all duration-200 ${cursorClass} ${highlightClass}`}
+      className={`relative flex h-[84px] w-[176px] items-center justify-between rounded-lg border-2 ${borderColor} ${background} px-3 py-2 transition-all duration-75 ${cursorClass} ${highlightClass}`}
     >
       <div className={`flex-shrink-0 text-lg font-bold ${uld ? "text-white" : "text-gray-900"}`}>
         {position.id}
@@ -73,8 +73,8 @@ const PositionCard: React.FC<{
       >
         {uld ? (
           <>
-            <span className="text-sm font-semibold">{uld.id}</span>
-            <span className="text-xs">
+            <span className="text-lg font-semibold">{uld.id}</span>
+            <span className="text-base font-semibold">
               {position.current_weight.toLocaleString()} kg
             </span>
           </>

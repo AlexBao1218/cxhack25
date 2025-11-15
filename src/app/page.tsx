@@ -31,7 +31,7 @@ export default function Home() {
     if (!highlightPositionId) {
       return;
     }
-    const timer = window.setTimeout(() => setHighlightPositionId(null), 1400);
+    const timer = window.setTimeout(() => setHighlightPositionId(null), 700);
     return () => window.clearTimeout(timer);
   }, [highlightPositionId]);
 
@@ -44,7 +44,7 @@ export default function Home() {
     const timer = window.setTimeout(() => {
       setOptimizedHighlights([]);
       clearRecentOptimizedPositions();
-    }, 2200);
+    }, 1500);
     return () => window.clearTimeout(timer);
   }, [recentOptimizedPositions, clearRecentOptimizedPositions]);
 

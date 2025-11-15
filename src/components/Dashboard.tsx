@@ -14,31 +14,28 @@ const Dashboard: React.FC = () => {
             <Image
               src="/Cathay Cargo_logo.png"
               alt="Cathay Pacific Logo"
-              width={128}
-              height={128}
+              width={300}
+              height={120}
               priority
-              className="h-20 w-auto"
+              className="w-full max-w-[300px] h-auto"
             />
             <div>
-              <p className="text-xs uppercase tracking-[0.4em] text-text-main">
-                Cathay Hackathon
-              </p>
-              <h1 className="text-3xl font-semibold text-uld-border sm:text-4xl">
-                智能ULD装载系统
+              <h1 className="mt-3 text-3xl font-semibold text-uld-border sm:text-4xl">
+                智能ULD配载方案
               </h1>
             </div>
           </div>
-          <div className="rounded-lg bg-white px-4 py-2 text-sm text-gray-600 shadow">
-            <p className="text-xs uppercase tracking-[0.2em] text-gray-400">
+          <div className="rounded-lg bg-white px-4 py-3 text-gray-600 shadow">
+            <p className="text-sm uppercase tracking-[0.2em] text-gray-400">
               Developed by
             </p>
-            <p className="text-sm font-semibold text-cathay-jade">
+            <p className="text-base font-semibold text-cathay-jade">
               Neochain
             </p>
           </div>
         </div>
-        <p className="text-sm text-text-main/80">
-          实时洞察重心、装载得分与AI建议，确保主/下甲板的安全高效装载。
+        <p className="text-base text-text-main/80">
+          通过使用AI算法，智能化调节ULD配载方案，节省燃油成本。
         </p>
       </div>
 
