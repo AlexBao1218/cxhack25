@@ -1,8 +1,11 @@
+import fs from "node:fs";
+import path from "node:path";
+
 import GLPKFactory, { GLPK, LP } from "glpk.js";
 
 import { OptimizationError } from "@/lib/errors";
 
-const glpk: GLPK = GLPKFactory();
+const GLPK_WASM_PATH = path.join(process.cwd(), "public", "glpk.wasm");
 
 const MODEL_NAME = "cg_optimizer";
 const CG_VAR_NAME = "cg_long";
@@ -55,14 +58,39 @@ interface VarMeta {
   positionIndex: number;
 }
 
-const solverOptions = {
+type GlpkFactoryWithBinary = (wasmBinary?: Uint8Array) => GLPK;
+
+let glpkInstance: GLPK | null = null;
+
+function loadWasmBinary(): Uint8Array {
+  try {
+    return fs.readFileSync(GLPK_WASM_PATH);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Failed to load GLPK wasm binary at ${GLPK_WASM_PATH}: ${reason}. ` +
+        `Please ensure the file exists (npm install && npm run build).`,
+    );
+  }
+}
+
+function getGlpk(): GLPK {
+  if (!glpkInstance) {
+    glpkInstance = (GLPKFactory as GlpkFactoryWithBinary)(loadWasmBinary());
+  }
+  return glpkInstance;
+}
+
+const buildSolverOptions = (glpk: GLPK) => ({
   msglev: glpk.GLP_MSG_ERR,
   presol: true,
-};
+});
 
 export function runGlpkOptimization(payload: OptimizationPayload): GlpkOptimizationResult {
+  const glpk = getGlpk();
+  const solverOptions = buildSolverOptions(glpk);
   const validated = validateInput(payload);
-  const { lp, varMap } = buildModel(validated);
+  const { lp, varMap } = buildModel(glpk, validated);
   const result = glpk.solve(lp, solverOptions);
   const status = result.result.status;
 
@@ -150,7 +178,7 @@ function validateInput(payload: OptimizationPayload): ValidatedInput {
   };
 }
 
-function buildModel(input: ValidatedInput): { lp: LP; varMap: Record<string, VarMeta> } {
+function buildModel(glpk: GLPK, input: ValidatedInput): { lp: LP; varMap: Record<string, VarMeta> } {
   const { uldList, positions, totalWeight, cgTargetLong } = input;
   const binaries: string[] = [];
   const varMap: Record<string, VarMeta> = {};
