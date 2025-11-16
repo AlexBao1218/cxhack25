@@ -165,12 +165,8 @@ const AircraftCabin: React.FC<AircraftCabinProps> = ({
     [],
   );
 
-  const handleSearch = React.useCallback(async () => {
+  const handleLoadFlight = React.useCallback(async () => {
     if (isLoading || flightInput.length === 0) {
-      return;
-    }
-
-    if (flightInput.length !== 6) {
       return;
     }
 
@@ -179,16 +175,15 @@ const AircraftCabin: React.FC<AircraftCabinProps> = ({
       return;
     }
 
-    const success = await loadFlightData(flightInput);
-    if (!success) {
-      const message = `未找到航班${flightInput}的数据`;
-      setInputError(message);
-      toast.error(message);
+    const result = await loadFlightData(flightInput);
+    if (!result.success) {
+      setInputError(result.message);
+      toast.error(result.message);
       return;
     }
 
     setInputError("");
-    toast.success(`已加载航班 ${flightInput}`);
+    toast.success(result.message ?? `已加载航班 ${flightInput}`);
   }, [flightInput, isLoading, loadFlightData]);
 
   const mainDeckRows = React.useMemo(
@@ -218,44 +213,51 @@ const AircraftCabin: React.FC<AircraftCabinProps> = ({
             查看机头、主货舱与尾段 34 个仓位的实时装载情况。
           </p>
         </div>
-        <div className="flex w-full flex-col items-start gap-1 sm:w-auto sm:items-end">
+        <div className="flex w-full flex-col gap-1 sm:w-auto">
           <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-            航班号搜索
+            航班号
           </span>
-          <div
-            className={`flex w-full items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm font-semibold text-text-main shadow-inner transition focus-within:ring-2 sm:w-[200px] ${
-              inputError
-                ? "border-red-500 focus-within:border-red-500 focus-within:ring-red-200"
-                : "border-uld-border hover:border-uld-border/80 focus-within:border-blue-500 focus-within:ring-blue-200"
-            } ${isLoading ? "opacity-70" : ""}`}
-          >
-            <Search
-              className={`h-4 w-4 ${
-                isLoading ? "text-gray-300" : "text-gray-400"
-              }`}
-            />
-            <input
-              id="flight-search"
-              type="text"
-              value={flightInput}
-              onChange={handleInputChange}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  void handleSearch();
-                }
+          <div className="flex w-full flex-col gap-2 sm:w-[360px] sm:flex-row">
+            <div
+              className={`flex flex-1 items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm font-semibold text-text-main shadow-inner transition focus-within:ring-2 ${
+                inputError
+                  ? "border-red-500 focus-within:border-red-500 focus-within:ring-red-200"
+                  : "border-uld-border hover:border-uld-border/80 focus-within:border-blue-500 focus-within:ring-blue-200"
+              } ${isLoading ? "opacity-70" : ""}`}
+            >
+              <Search
+                className={`h-4 w-4 ${
+                  isLoading ? "text-gray-300" : "text-gray-400"
+                }`}
+              />
+              <input
+                id="flight-search"
+                type="text"
+                value={flightInput}
+                onChange={handleInputChange}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    void handleLoadFlight();
+                  }
+                }}
+                placeholder="输入航班号 (如:CX2025)"
+                maxLength={6}
+                disabled={isLoading}
+                className="w-full bg-transparent text-sm font-semibold text-text-main placeholder:text-gray-400 focus:outline-none disabled:cursor-not-allowed disabled:text-gray-400"
+                autoComplete="off"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                void handleLoadFlight();
               }}
-              onBlur={() => {
-                if (flightInput.length === 6) {
-                  void handleSearch();
-                }
-              }}
-              placeholder="搜索航班号 (如:CX2025)"
-              maxLength={6}
-              disabled={isLoading}
-              className="w-full bg-transparent text-sm font-semibold text-text-main placeholder:text-gray-400 focus:outline-none disabled:cursor-not-allowed disabled:text-gray-400"
-              autoComplete="off"
-            />
+              disabled={isLoading || !FLIGHT_NUMBER_REGEX.test(flightInput)}
+              className="flex-1 rounded-lg bg-cathay-jade px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-cathay-jade/90 disabled:cursor-not-allowed disabled:bg-cathay-jade/50"
+            >
+              {isLoading ? "加载中..." : "加载航班"}
+            </button>
           </div>
           {inputError && (
             <p className="text-xs text-red-500">{inputError}</p>

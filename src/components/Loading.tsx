@@ -16,7 +16,7 @@ const LoadingOverlay: React.FC = () => {
       <div className="flex flex-col items-center gap-4 rounded-[28px] border border-uld-border/20 bg-cabin-interior px-8 py-6 text-text-main shadow-2xl">
         <span className="h-10 w-10 animate-spin rounded-full border-4 border-uld-border/30 border-t-uld-border" />
         <div className="text-center text-sm font-semibold">
-          计算中，请稍候...
+          加载中，请稍候...
         </div>
       </div>
     </div>

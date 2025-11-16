@@ -10,7 +10,278 @@ type ActionResult = {
 
 type LayoutSnapshot = Omit<LayoutState, "currentFlightNumber">;
 
+type FlightApiPosition = {
+  id: string;
+  xpos: number;
+  ypos: number;
+};
+
+type FlightApiUld = {
+  id: string;
+  weight: number;
+};
+
+type FlightApiResponse = {
+  flight?: {
+    id: number;
+    targetCgLong?: number | null;
+  };
+  positions?: FlightApiPosition[];
+  ulds?: FlightApiUld[];
+};
+
 const FLIGHT_NUMBER_REGEX = /^CX\d{4}$/i;
+const OPTIMIZATION_API_PATH = "/api/optimize";
+const FLIGHT_API_PATH = "/api/flight";
+const INVALID_FLIGHT_INPUT_MESSAGE = "航班号格式应为 CX+4 位数字";
+const DEFAULT_POSITION_MAX_WEIGHT = 5000;
+const DEFAULT_ULD_TYPE: ULD["type"] = "AKE";
+
+type OptimizationLayoutEntry = {
+  uldId: string;
+  positionId: string;
+  weight: number;
+  xpos: number;
+  ypos: number;
+};
+
+type OptimizationCgSummary = {
+  long?: number;
+  zLong?: number;
+  score?: number;
+  pure?: number;
+};
+
+type OptimizationResponse = {
+  layout?: OptimizationLayoutEntry[];
+  cg?: OptimizationCgSummary;
+};
+
+class OptimizationApiError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "OptimizationApiError";
+    this.status = status;
+  }
+}
+
+const normalizeFlightNumber = (value: string) => value.trim().toUpperCase();
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const extractErrorMessage = (payload: unknown, fallback: string) => {
+  if (isRecord(payload)) {
+    const maybeError = payload.error;
+    if (typeof maybeError === "string" && maybeError.trim() !== "") {
+      return maybeError;
+    }
+  }
+  return fallback;
+};
+
+const requestServerOptimization = async (
+  flightNumber: string,
+): Promise<OptimizationResponse> => {
+  const response = await fetch(OPTIMIZATION_API_PATH, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ flight_no: flightNumber }),
+  }).catch((error: unknown) => {
+    const message = error instanceof Error ? error.message : "网络异常";
+    throw new OptimizationApiError(`请求失败：${message}`, 500);
+  });
+
+  let payload: unknown = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const message = extractErrorMessage(payload, "后端优化失败");
+    throw new OptimizationApiError(message, response.status);
+  }
+
+  if (!isRecord(payload)) {
+    return { layout: [] };
+  }
+
+  return payload as OptimizationResponse;
+};
+
+const requestFlightData = async (
+  flightNumber: string,
+): Promise<FlightApiResponse> => {
+  const response = await fetch(FLIGHT_API_PATH, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ flight_no: flightNumber }),
+  }).catch((error: unknown) => {
+    const message = error instanceof Error ? error.message : "网络异常";
+    throw new OptimizationApiError(`请求失败：${message}`, 500);
+  });
+
+  let payload: unknown = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const message = extractErrorMessage(payload, "航班数据加载失败");
+    throw new OptimizationApiError(message, response.status);
+  }
+
+  if (!isRecord(payload)) {
+    throw new OptimizationApiError("航班数据格式异常", 500);
+  }
+
+  return payload as FlightApiResponse;
+};
+
+const buildPositionsFromServer = (positionsResponse: FlightApiPosition[]): Position[] => {
+  if (!positionsResponse.length) {
+    return cx2025Snapshot.positions.map((pos) => ({
+      ...pos,
+      assigned_uld: null,
+      current_weight: 0,
+    }));
+  }
+
+  const normalized = positionsResponse
+    .map((pos) => {
+      const meta = positionMetaMap.get(pos.id);
+      if (!meta) {
+        console.warn(`[flight] 未找到仓位 ${pos.id} 的元数据，已使用默认值`);
+      }
+      return {
+        id: pos.id,
+        x: Number(pos.xpos),
+        y: Number(pos.ypos),
+        max_weight: meta?.max_weight ?? DEFAULT_POSITION_MAX_WEIGHT,
+        current_weight: 0,
+        assigned_uld: null,
+        isFixed: meta?.isFixed ?? false,
+      } satisfies Position;
+    })
+    .sort((a, b) => {
+      if (a.y === b.y) {
+        return a.x - b.x;
+      }
+      return a.y - b.y;
+    });
+
+  return normalized;
+};
+
+const buildUldsFromServer = (uldsResponse: FlightApiUld[]): ULD[] =>
+  uldsResponse.map((item) => ({
+    id: item.id,
+    weight: Number(item.weight),
+    volume: 0,
+    isPriority: false,
+    type: DEFAULT_ULD_TYPE,
+  }));
+
+const createSnapshotFromFlightPayload = (payload: FlightApiResponse): LayoutSnapshot => {
+  const positions = buildPositionsFromServer(payload.positions ?? []);
+  const ulds = buildUldsFromServer(payload.ulds ?? []);
+  const unassignedUlds = ulds.map((uld) => ({ ...uld }));
+  return {
+    positions,
+    ulds,
+    unassignedUlds,
+    cgValue: computeCGValue(positions),
+    score: computeScoreValue(positions, unassignedUlds),
+    suggestion: buildSuggestion(positions, unassignedUlds),
+    isLoading: false,
+  };
+};
+
+const fetchFlightSnapshot = async (
+  flightNumber: string,
+): Promise<LayoutSnapshot> => {
+  const payload = await requestFlightData(flightNumber);
+  return createSnapshotFromFlightPayload(payload);
+};
+
+const buildServerSuggestion = (cg?: OptimizationCgSummary) => {
+  if (!cg || typeof cg.long !== "number") {
+    return "已应用后端优化方案，请在舱位图中确认布局。";
+  }
+
+  const cgLabel = cg.long.toFixed(2);
+  const deviationLabel =
+    typeof cg.zLong === "number"
+      ? `，偏差 ${Math.abs(cg.zLong).toFixed(2)} ft`
+      : "";
+  const scoreLabel =
+    typeof cg.score === "number"
+      ? `，得分 ${Math.round(cg.score)}`
+      : "";
+
+  return `求解 CG 为 ${cgLabel} ft${deviationLabel}${scoreLabel}。`;
+};
+
+const assignLayoutToPositions = (
+  positions: Position[],
+  layout: OptimizationLayoutEntry[],
+) => {
+  const basePositions = positions.map((pos) => ({
+    ...pos,
+    assigned_uld: null,
+    current_weight: 0,
+  }));
+  const positionMap = new Map(basePositions.map((pos) => [pos.id, pos]));
+  const touched: string[] = [];
+
+  layout.forEach((entry) => {
+    const target = positionMap.get(entry.positionId);
+    if (!target) {
+      console.warn(`[optimize] 未找到仓位 ${entry.positionId}`);
+      return;
+    }
+    target.assigned_uld = entry.uldId;
+    target.current_weight = entry.weight;
+    touched.push(target.id);
+  });
+
+  return {
+    positions: Array.from(positionMap.values()),
+    touchedPositions: Array.from(new Set(touched)),
+  };
+};
+
+const buildUldsFromLayout = (
+  existingUlds: ULD[],
+  layout: OptimizationLayoutEntry[],
+) => {
+  const map = new Map(existingUlds.map((uld) => [uld.id, { ...uld }]));
+  layout.forEach((entry) => {
+    const found = map.get(entry.uldId);
+    if (found) {
+      found.weight = entry.weight;
+    } else {
+      map.set(entry.uldId, {
+        id: entry.uldId,
+        weight: entry.weight,
+        volume: 0,
+        isPriority: false,
+        type: "AKE",
+      });
+    }
+  });
+
+  const uniqueIds = Array.from(new Set(layout.map((entry) => entry.uldId)));
+  return uniqueIds
+    .map((id) => map.get(id))
+    .filter((value): value is ULD => Boolean(value));
+};
 
 const cloneLayoutFromSnapshot = (
   snapshot: LayoutSnapshot,
@@ -54,14 +325,48 @@ interface LayoutStore extends LayoutState {
   calculateCG: () => number;
   calculateScore: () => number;
   generateSuggestion: () => string;
-  optimizeLayout: () => void;
+  optimizeLayout: (flightNumber?: string) => Promise<ActionResult>;
   resetLayout: () => void;
   clearRecentOptimizedPositions: () => void;
-  loadFlightData: (flightNumber: string) => Promise<boolean>;
+  loadFlightData: (flightNumber: string) => Promise<ActionResult>;
   clearAllAssignments: () => void;
   getULDById: (uldId: string) => ULD | undefined;
   recentOptimizedPositions: string[];
 }
+
+const applyServerOptimization = (
+  state: LayoutState,
+  response: OptimizationResponse,
+  flightNumber: string,
+): Partial<LayoutStore> => {
+  const layout = response.layout ?? [];
+  const { positions, touchedPositions } = assignLayoutToPositions(
+    state.positions,
+    layout,
+  );
+  const ulds = buildUldsFromLayout(state.ulds, layout);
+  const unassignedUlds: ULD[] = [];
+  const cgValue =
+    typeof response.cg?.long === "number"
+      ? Number(response.cg.long.toFixed(1))
+      : computeCGValue(positions);
+  const score =
+    typeof response.cg?.score === "number"
+      ? Math.round(response.cg.score)
+      : computeScoreValue(positions, unassignedUlds);
+
+  return {
+    positions,
+    ulds,
+    unassignedUlds,
+    cgValue,
+    score,
+    suggestion: buildServerSuggestion(response.cg),
+    isLoading: false,
+    currentFlightNumber: flightNumber,
+    recentOptimizedPositions: touchedPositions,
+  };
+};
 
 const computeCGValue = (positions: Position[]): number => {
   const totalWeight = positions.reduce(
@@ -70,7 +375,7 @@ const computeCGValue = (positions: Position[]): number => {
   );
 
   if (totalWeight === 0) {
-    return 50;
+    return 40;
   }
 
   const weighted = positions.reduce(
@@ -110,6 +415,16 @@ const buildSuggestion = (positions: Position[], unassigned: ULD[]): string => {
 const DEFAULT_FLIGHT_NUMBER = "CX2025";
 const cx2025Snapshot = cx2025Data.layoutState as LayoutSnapshot;
 
+const positionMetaMap = new Map<
+  string,
+  Pick<Position, "max_weight" | "isFixed">
+>(
+  cx2025Snapshot.positions.map((pos) => [
+    pos.id,
+    { max_weight: pos.max_weight, isFixed: pos.isFixed },
+  ]),
+);
+
 const initialLayoutState = createLayoutStateFromSnapshot(
   cx2025Snapshot,
   DEFAULT_FLIGHT_NUMBER,
@@ -120,39 +435,53 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
   recentOptimizedPositions: [],
   getULDById: (uldId) => get().ulds.find((uld) => uld.id === uldId),
   loadFlightData: async (flightNumber) => {
-    const normalized = flightNumber.toUpperCase();
+    const normalized = normalizeFlightNumber(flightNumber);
     if (!FLIGHT_NUMBER_REGEX.test(normalized)) {
-      return false;
+      return {
+        success: false,
+        message: INVALID_FLIGHT_INPUT_MESSAGE,
+      };
     }
 
     const state = get();
     if (state.isLoading) {
-      return false;
+      return {
+        success: false,
+        message: "数据加载中，请稍候...",
+      };
     }
 
-    if (state.currentFlightNumber === normalized) {
-      return true;
+    if (state.currentFlightNumber === normalized && state.positions.length > 0) {
+      return {
+        success: true,
+        message: `航班 ${normalized} 数据已加载`,
+      };
     }
 
     set({ isLoading: true, recentOptimizedPositions: [] });
 
     try {
-      const fileName = normalized.toLowerCase();
-      const dataModule = (await import(`../data/${fileName}.json`)) as {
-        default: { layoutState: LayoutSnapshot };
-      };
-      const snapshot = dataModule.default.layoutState;
+      const snapshot = await fetchFlightSnapshot(normalized);
       const nextState = createLayoutStateFromSnapshot(snapshot, normalized);
-
       set({
         ...nextState,
         recentOptimizedPositions: [],
       });
-      return true;
+      return {
+        success: true,
+        message: `航班 ${normalized} 数据已就绪`,
+      };
     } catch (error) {
-      console.error(`航班数据 ${normalized} 加载失败`, error);
+      const message =
+        error instanceof OptimizationApiError
+          ? error.message
+          : `航班 ${normalized} 数据加载失败`;
+      console.error(`[flight] load ${normalized} failed`, error);
       set({ isLoading: false });
-      return false;
+      return {
+        success: false,
+        message,
+      };
     }
   },
   assignULD: (uldId, positionId) => {
@@ -490,102 +819,46 @@ export const useLayoutStore = create<LayoutStore>((set, get) => ({
     set({ suggestion });
     return suggestion;
   },
-  optimizeLayout: () => {
-    const currentState = get();
-    if (currentState.isLoading) {
-      return;
+  optimizeLayout: async (flightNumber) => {
+    const normalized = normalizeFlightNumber(
+      flightNumber ?? get().currentFlightNumber,
+    );
+
+    if (!FLIGHT_NUMBER_REGEX.test(normalized)) {
+      return {
+        success: false,
+        message: "请先输入格式为 CX1234 的航班号",
+      };
     }
 
-    set({ isLoading: true, suggestion: "AI优化进行中，请稍候..." });
+    const state = get();
+    if (state.isLoading) {
+      return { success: false, message: "已有任务执行中，请稍候..." };
+    }
 
-    setTimeout(() => {
-      const state = get();
-      const positionsClone = state.positions.map((pos) => ({ ...pos }));
-      const fixedAssigned = new Set(
-        positionsClone
-          .filter((pos) => pos.isFixed && pos.assigned_uld)
-          .map((pos) => pos.assigned_uld as string),
+    set({
+      isLoading: true,
+      suggestion: "AI优化进行中，请稍候...",
+      recentOptimizedPositions: [],
+    });
+
+    try {
+      const response = await requestServerOptimization(normalized);
+      set((currentState) =>
+        applyServerOptimization(currentState, response, normalized),
       );
-
-      const movablePositions = positionsClone.filter((pos) => !pos.isFixed);
-      movablePositions.forEach((pos) => {
-        pos.assigned_uld = null;
-        pos.current_weight = 0;
-      });
-
-      const leftSlots = movablePositions
-        .filter((pos) => pos.x <= 40)
-        .sort((a, b) => a.y - b.y);
-      const rightSlots = movablePositions
-        .filter((pos) => pos.x > 40)
-        .sort((a, b) => a.y - b.y);
-
-      const sortedCandidates = state.ulds
-        .filter((uld) => !fixedAssigned.has(uld.id))
-        .sort((a, b) => b.weight - a.weight);
-
-      let leftIndex = 0;
-      let rightIndex = 0;
-      let leftLoad = 0;
-      let rightLoad = 0;
-      const touchedPositions = new Set<string>();
-
-      sortedCandidates.forEach((uld) => {
-        const leftAvailable = leftIndex < leftSlots.length;
-        const rightAvailable = rightIndex < rightSlots.length;
-
-        if (!leftAvailable && !rightAvailable) {
-          return;
-        }
-
-        let targetSide: "left" | "right" = "left";
-        if (!leftAvailable) {
-          targetSide = "right";
-        } else if (!rightAvailable) {
-          targetSide = "left";
-        } else {
-          targetSide = leftLoad <= rightLoad ? "left" : "right";
-        }
-
-        const slot =
-          targetSide === "left" ? leftSlots[leftIndex] : rightSlots[rightIndex];
-        if (!slot) {
-          return;
-        }
-
-        slot.assigned_uld = uld.id;
-        slot.current_weight = uld.weight;
-        touchedPositions.add(slot.id);
-
-        if (targetSide === "left") {
-          leftLoad += uld.weight;
-          leftIndex += 1;
-        } else {
-          rightLoad += uld.weight;
-          rightIndex += 1;
-        }
-      });
-
-      const updatedUnassigned = state.ulds.filter(
-        (uld) =>
-          !positionsClone.some(
-            (pos) => pos.assigned_uld && pos.assigned_uld === uld.id,
-          ),
-      );
-
-      const cgValue = computeCGValue(positionsClone);
-      const score = computeScoreValue(positionsClone, updatedUnassigned);
-
-      set({
-        positions: positionsClone,
-        unassignedUlds: updatedUnassigned,
-        cgValue,
-        score,
-        suggestion: "已应用AI优化方案，可继续根据需要微调。",
-        isLoading: false,
-        recentOptimizedPositions: Array.from(touchedPositions),
-      });
-    }, 1500);
+      return {
+        success: true,
+        message: `航班 ${normalized} 优化完成`,
+      };
+    } catch (error) {
+      const message =
+        error instanceof OptimizationApiError
+          ? error.message
+          : "优化请求失败，请稍后再试";
+      set({ isLoading: false });
+      return { success: false, message };
+    }
   },
   resetLayout: () => {
     set((state) => {

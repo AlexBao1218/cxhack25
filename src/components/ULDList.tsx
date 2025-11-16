@@ -85,7 +85,7 @@ const ULDList: React.FC = () => {
         <div className="mb-4 flex flex-col gap-2 sm:flex-row">
           <button
             type="button"
-            onClick={() => {
+            onClick={async () => {
               if (isLoading) {
                 return;
               }
@@ -95,7 +95,12 @@ const ULDList: React.FC = () => {
               if (!confirmed) {
                 return;
               }
-              optimizeLayout();
+              const result = await optimizeLayout();
+              if (result.success) {
+                toast.success(result.message);
+              } else {
+                toast.error(result.message);
+              }
             }}
             disabled={isLoading}
             className="flex-1 rounded-xl bg-cathay-jade px-4 py-3 text-sm font-semibold text-white shadow transition hover:bg-cathay-jade/90 disabled:cursor-not-allowed disabled:bg-cathay-jade/60"
