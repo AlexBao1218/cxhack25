@@ -232,7 +232,7 @@ const assignLayoutToPositions = (
   positions: Position[],
   layout: OptimizationLayoutEntry[],
 ) => {
-  const basePositions = positions.map((pos) => ({
+  const basePositions: Position[] = positions.map((pos) => ({
     ...pos,
     assigned_uld: null,
     current_weight: 0,
